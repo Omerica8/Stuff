@@ -1,0 +1,15 @@
+* 80 Hz Sallen-Key HPF, unity gain
+Vin vin 0 AC 1
+C1 vin a 100n
+C2 a p 100n
+R1 a out 14k
+R2 p 0 28k
+E1 out 0 p out 1e6
+.ac dec 20 10 20k
+.control
+run
+meas ac f3 WHEN vdb(out)=-3
+meas ac g40 FIND vdb(out) AT=40
+meas ac g100 FIND vdb(out) AT=100
+.endc
+.end
