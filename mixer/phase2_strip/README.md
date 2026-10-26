@@ -88,7 +88,7 @@ Pan law −2.5 dB at centre with full separation at the ends. The fader with its
 
 ## Parts per strip
 
-1 THAT1512, 3 NE5532, 1 LM393, 1 combo jack, 3 switches (48V, PAD, 80Hz), 8 pots (1 C10K, 4 B10K centre-detent, 2 A10K... plus pan B10K), 1 fader (owned), 4 1N4004, 1 LED, 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
+1 THAT1512, 3 NE5532, 1 LM393, 1 combo jack, 3 switches (48V, PAD, 80Hz), 7 pots (1 C10K gain; 4 B10K centre-detent for HIGH, MID, LOW, PAN; 2 A10K for AUX, FX), 1 fader (owned), 4 1N4004, 1 LED, 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
 
 ## Phase 2 test rig (breadboard, no master board yet)
 
