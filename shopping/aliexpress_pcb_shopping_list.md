@@ -1,6 +1,6 @@
 # AliExpress shopping list: controller PCB
 
-Checked against `controller_bom.csv` and the latest schematic (`controller_schematic-20261020T064002-9c25.pdf`). The schematic has the same parts as the BOM, so nothing new was added after it. The TFT screen is left out because it's on hold.
+Checked against `controller_bom.csv` and the latest schematic (`controller_schematic.pdf`). The schematic has the same parts as the BOM, so nothing new was added after it. The TFT screen is left out because it's on hold.
 
 Prices are rough AliExpress prices in USD, before shipping. They change a lot between sellers.
 
@@ -41,4 +41,4 @@ Prices are rough AliExpress prices in USD, before shipping. They change a lot be
 
 ## Not from AliExpress
 
-The PCB itself comes from JLCPCB using `controller_jlcpcb-20261020T064001-55a9.zip` (the newest upload). 5 boards cost about $2–5 plus shipping. You can order it together with this list so everything shows up around the same time.
+The PCB itself comes from JLCPCB using `controller_jlcpcb.zip` (the newest upload). 5 boards cost about $2–5 plus shipping. You can order it together with this list so everything shows up around the same time.
