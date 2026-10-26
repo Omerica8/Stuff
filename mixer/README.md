@@ -134,3 +134,17 @@ That uses 8 of your 10 B10K faders: 4 on the mono strips and 4 on the MIDI secti
 6. **Stereo strip level:** buy dual-gang faders, or use dual-gang knobs to save money?
 
 Next step from me: the Phase 1 power board is designed (phase1_power/README.md); next is its PCB.
+
+## Status (2026-10-26)
+
+| Board | Folder | Size | State |
+|---|---|---|---|
+| Power (±12 V, 48 V) | phase1_power/ | 100 × 85 mm | PCB done, checks clean, not ordered |
+| Mono mic strip ×4 | phase2_strip/ | 30 × 343 mm | PCB done, exact parts in pcb/PARTS.md |
+| Master | phase3_master/ | 60 × 343 mm | PCB done, check dual-fader + 3.5 mm jack footprints with a 1:1 print |
+| Digital (USB audio, hub, DIN MIDI) | phase3b_digital/ | 100 × 75 mm | PCB done, modules wired to pads |
+| Stereo strip ×2 (line, USB return) | phase4_stereo/ | 30 × 343 mm | PCB done |
+| Firmware step 5 (DIN MIDI bridge) | ../firmware/step5_din_midi/ | — | written, logic tested off-hardware |
+| Reverb module, enclosure | — | — | not started |
+
+Long-lead parts to order first: C&K PVA2 EE switches (~15 weeks), Bourns PTA6044 dual faders (up to 21 weeks), NTE1509 (LM3915 replacement).
