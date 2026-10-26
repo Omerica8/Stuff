@@ -1,0 +1,10 @@
+Item #,*Ref Des,*Qty,Manufacturer,*Mfg Part #,Description / Value,*Package,Type,Your Instructions / Notes
+1,"RV1,RV2,RV3,RV4",4,Bourns,PTA3043-2015DPB103,"Pot, slide, B10K linear, 15mm lever",PTA3043 THT,thru-hole,Consigned: customer supplies own 45mm B10K faders (fit-checked on 1:1 print 2026-10-20). Footprint-exact turnkey alternative is this Bourns part (30mm travel): https://www.digikey.com/en/products/result?keywords=PTA3043-2015DPB103
+2,"ENC1,ENC2,ENC3,ENC4",4,Alps Alpine,EC11E15244G1,"Rotary encoder 15ppr/30 detent with push switch, 20mm flat shaft",EC11E vertical,thru-hole,Consigned: customer supplies own EC11. Turnkey source: LCSC C370970 https://www.lcsc.com/product-detail/C370970.html
+3,"SW1,SW2,SW3,SW4",4,kinghelm,KH-6X6X16H-TJ,"Tact switch 6x6mm, 16mm height, SPST",6x6mm THT 4P,thru-hole,Consigned: customer supplies own. Turnkey source: LCSC C2837526 https://www.lcsc.com/product-detail/C2837526.html
+4,SW5,1,SHOU HAN,7-7 ZS,"Latching push switch DPDT 7x7mm, 6 pin",7x7mm THT 6P,thru-hole,PCBWay to source: LCSC C5379891 https://www.lcsc.com/product-detail/C5379891.html
+5,"D1,D2,D3,D4",4,Kingbright,WP7113ID,"LED 5mm red, diffused",T-1 3/4 (5mm),thru-hole,Consigned: customer supplies own. Turnkey source: https://www.digikey.com/en/products/detail/kingbright/WP7113ID/1747663 (swap colour if wanted)
+6,"R1,R2,R3,R4,R5,R6,R7,R8",8,YAGEO,CFR-25JB-52-330R,"RES 330 OHM 1/4W 5% carbon film, mounted vertical",Axial DIN0207,thru-hole,PCBWay to source: LCSC C2935230 https://www.lcsc.com/product-detail/C2935230.html
+7,"J1,J2",2,Sullins,PPTC221LFBN-RC,CONN female header 1x22 P2.54mm vertical (ESP32-S3 DevKitC socket),1x22 2.54mm,thru-hole,PCBWay to source: https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC221LFBN-RC/810160
+8,J4,1,Sullins,PPTC061LFBN-RC,CONN female header 1x06 P2.54mm vertical (TFT),1x06 2.54mm,thru-hole,PCBWay to source: https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC061LFBN-RC/810145
+9,(off-board),1,Espressif,ESP32-S3-DevKitC-1-N16R8,"ESP32-S3 dev board, plugs into J1/J2",Module,DNS,Do not solder. Plugs into sockets; customer supplies own clone

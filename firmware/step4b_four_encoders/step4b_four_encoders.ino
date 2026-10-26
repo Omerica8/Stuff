@@ -1,0 +1,117 @@
+// Step 4b: four faders and four encoders, plus the step 3 button and LED.
+// Faders -> CC 20-23, encoders -> CC 30-33 (0-127), encoder pushes -> notes 60-63, button -> note 70.
+#include <Arduino.h>
+#if ARDUINO_USB_MODE
+#error Set Tools > USB Mode to "USB-OTG (TinyUSB)"
+#else
+
+#include "USB.h"
+#include "USBMIDI.h"
+
+USBMIDI MIDI("Omer Controller");
+
+const int FADER_PINS[4] = {1, 2, 4, 5};
+// Encoder n: A, B, push.
+const int ENC_PINS[4][3] = {{11, 12, 13}, {14, 21, 38}, {39, 40, 41}, {42, 47, 15}};
+const int BUTTON_PIN = 9;
+const int LED_PIN = 6;
+
+const int CC_FADER_FIRST = 20;  // fader n sends CC 20 + n
+const int CC_ENCODER_FIRST = 30;  // encoder n sends CC 30 + n
+const int NOTE_ENC_PUSH_FIRST = 60;  // encoder n push sends note 60 + n
+const int NOTE_BUTTON = 70;  // moved off 61, which encoder 2's push now uses
+
+// shortcut: fixed ADC ends, fine-tune if the fader can't reach 0 or 127
+const int RAW_MIN = 40;
+const int RAW_MAX = 4000;
+const int STEPS_PER_DETENT = 4;  // most EC11s; set to 2 if one click moves 2 values
+
+// Defined before any function: the Arduino IDE puts its auto-generated prototypes above the first function.
+struct Button {
+  int pin;
+  int note;
+  bool down = false;
+  uint32_t changedAt = 0;
+};
+
+// Fader raw ADC (0-4095) to 0-127, clamped to the calibrated ends.
+int faderToMidi(int raw) {
+  long v = (long)(raw - RAW_MIN) * 127 / (RAW_MAX - RAW_MIN);
+  return constrain(v, 0, 127);
+}
+
+// Quadrature step from previous and current AB state: +1, -1 or 0.
+int encoderStep(uint8_t prevAB, uint8_t ab) {
+  static const int8_t table[16] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
+  return table[(prevAB << 2) | ab];
+}
+
+Button encPush[4] = {{ENC_PINS[0][2], NOTE_ENC_PUSH_FIRST}, {ENC_PINS[1][2], NOTE_ENC_PUSH_FIRST + 1},
+                     {ENC_PINS[2][2], NOTE_ENC_PUSH_FIRST + 2}, {ENC_PINS[3][2], NOTE_ENC_PUSH_FIRST + 3}};
+Button button{BUTTON_PIN, NOTE_BUTTON};
+
+void pollButton(Button &b) {
+  bool down = digitalRead(b.pin) == LOW;
+  if (down == b.down || millis() - b.changedAt < 15) return;  // 15 ms debounce
+  b.down = down;
+  b.changedAt = millis();
+  if (down) MIDI.noteOn(b.note, 100);
+  else MIDI.noteOff(b.note, 0);
+}
+
+uint8_t readAB(int e) {
+  return (digitalRead(ENC_PINS[e][0]) << 1) | digitalRead(ENC_PINS[e][1]);
+}
+
+void setup() {
+  for (int e = 0; e < 4; e++)
+    for (int p = 0; p < 3; p++) pinMode(ENC_PINS[e][p], INPUT_PULLUP);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  analogReadResolution(12);
+  MIDI.begin();
+  USB.begin();
+}
+
+void loop() {
+  // Faders: average 16 reads; ignore wobble smaller than RAW_HYST so the value doesn't flicker.
+  const int RAW_HYST = 20;
+  static int lastRaw[4] = {-1000, -1000, -1000, -1000};
+  static int lastFader[4] = {-1, -1, -1, -1};
+  for (int f = 0; f < 4; f++) {
+    long sum = 0;
+    for (int i = 0; i < 16; i++) sum += analogRead(FADER_PINS[f]);
+    int raw = sum / 16;
+    int fader = faderToMidi(raw);
+    if (fader != lastFader[f] && (abs(raw - lastRaw[f]) > RAW_HYST || fader == 0 || fader == 127)) {
+      lastRaw[f] = raw;
+      lastFader[f] = fader;
+      MIDI.controlChange(CC_FADER_FIRST + f, fader);
+    }
+  }
+
+  // Encoders: count quadrature steps, one value per detent.
+  static uint8_t prevAB[4] = {readAB(0), readAB(1), readAB(2), readAB(3)};
+  static int steps[4] = {0, 0, 0, 0};
+  static int encValue[4] = {64, 64, 64, 64};
+  for (int e = 0; e < 4; e++) {
+    uint8_t ab = readAB(e);
+    if (ab == prevAB[e]) continue;
+    steps[e] += encoderStep(prevAB[e], ab);
+    prevAB[e] = ab;
+    if (abs(steps[e]) >= STEPS_PER_DETENT) {
+      encValue[e] = constrain(encValue[e] + (steps[e] > 0 ? 1 : -1), 0, 127);
+      steps[e] = 0;
+      MIDI.controlChange(CC_ENCODER_FIRST + e, encValue[e]);
+    }
+  }
+
+  bool anyDown = false;
+  for (int e = 0; e < 4; e++) {
+    pollButton(encPush[e]);
+    anyDown |= encPush[e].down;
+  }
+  pollButton(button);
+  digitalWrite(LED_PIN, button.down || anyDown ? HIGH : LOW);
+}
+#endif

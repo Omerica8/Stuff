@@ -1,0 +1,13 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+"D1, D2, D3, D4",LED_D5.0mm,4,LED,
+"ENC1, ENC2, ENC3, ENC4",RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm,4,EC11 encoder,
+J1,PinSocket_1x22_P2.54mm_Vertical,1,ESP32-S3 left header,
+J2,PinSocket_1x22_P2.54mm_Vertical,1,ESP32-S3 right header,
+J4,PinSocket_1x06_P2.54mm_Vertical,1,TFT header,
+"R1, R2, R3, R4, R5, R6, R7, R8",R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical,8,330,
+"RV1, RV2, RV3, RV4",Potentiometer_Bourns_PTA3043_Single_Slide,4,B10K slide 45mm,
+SW1,SW_PUSH_6mm_H13mm,1,Button 1,
+SW2,SW_PUSH_6mm_H13mm,1,Button 2,
+SW3,SW_PUSH_6mm_H13mm,1,Button 3,
+SW4,SW_PUSH_6mm_H13mm,1,Button 4,
+SW5,SW_Latch_7x7mm_DPDT,1,Power (latching 7x7),
