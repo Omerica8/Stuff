@@ -1,0 +1,29 @@
+* +/- half-wave rails + CW quadrupler phantom, 13.5VAC
+.model DR D(IS=76.9n RS=42m N=1.45 BV=1000 CJO=26.5p TT=4.32u)
+Vs src 0 SIN(0 {13.5*1.4142} 50)
+Rs src a 1.5
+D1 a p DR
+Cp p 0 6800u
+Ip p 0 300m
+D2 n a DR
+Cn 0 n 6800u
+In 0 n 300m
+C1 a n1 1000u
+D3 0 n1 DR
+D4 n1 n2 DR
+C2 n2 0 1000u
+C3 n1 n3 1000u
+D5 n2 n3 DR
+D6 n3 n4 DR
+C4 n4 n2 1000u
+Iph n4 0 30m
+.tran 0.5m 30 29.8
+.control
+run
+meas tran pmin MIN v(p)
+meas tran nmax MAX v(n)
+meas tran phmin MIN v(n4)
+meas tran phmax MAX v(n4)
+meas tran irms RMS i(Vs)
+.endc
+.end
