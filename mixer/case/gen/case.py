@@ -22,17 +22,8 @@ def bx(x0, y0, x1, y1, z0, z1):
 def cyl(x, y, d, z0, z1):
     return Pos(x, Y(y), (z0 + z1) / 2) * Cylinder(d / 2, z1 - z0)
 
-# Board mounting holes: (board, case x of left edge, case y of rear edge, PCB underside z)
-BOARDS = [('mixer_strip', 6, 5, 21.0), ('mixer_strip', 37, 5, 21.0), ('mixer_strip', 68, 5, 21.0), ('mixer_strip', 99, 5, 21.0),
-          ('mixer_stereo', 130, 5, 21.0), ('mixer_stereo', 161, 5, 21.0), ('mixer_master', 192, 5, 21.0),
-          ('controller', 256, 230, 24.0), ('mixer_digital', 278, 5, 9.0), ('mixer_power', 278, 88, 8.0),
-          ('mixer_reverb', 320, 177, 8.0)]
-posts = []
-for name, bx0, by0, zb in BOARDS:
-    ex0, ey0 = B[name]['edge'][0] + 0.05, B[name]['edge'][1] + 0.05
-    for f in B[name]['fps']:
-        if f['lib'].startswith('MountingHole'):
-            posts.append((bx0 + f['x'] - ex0, by0 + f['y'] - ey0, zb))
+from layout import BOARDS, to_case, footprint_box
+posts = [(*to_case(e, f['x'], f['y']), e[4]) for e in BOARDS for f in B[e[0]]['fps'] if f['lib'].startswith('MountingHole')]
 
 # ---------------- tray (floor, walls, posts), split in four ----------------
 tray = bx(0, 0, W, D, 0, FLOOR)
@@ -62,23 +53,30 @@ for x, y in FX['shelf_bosses']:
         tray -= cyl(x, y, PILOT_D, Z_SHELF - 9, Z_SHELF + 0.1)
 
 # armrest bosses (side margins and the free strip in front of the controller)
-ARM_BOSSES = [(4.5, 345), (402.5, 345), (254, 340), (300, 340), (380, 340)]
+ARM_BOSSES = [(4.5, 345), (402.5, 345), (200, 340), (300, 340), (380, 340)]
 for x, y in ARM_BOSSES:
     tray += bx(x - 3, y - 3, x + 3, D - WALL, Z_ARM - 8, Z_ARM)
     tray -= cyl(x, y, INSERT_D, Z_ARM - INSERT_DEPTH, Z_ARM + 0.1)
 
-# rear-wall openings (digital board on 6 mm posts, PCB top 10.6). shortcut: connector heights from generic datasheets, file to fit.
-PCB_D = 10.6
-for x0, x1, zc, h in [(286.5, 306.6, PCB_D + 10.0, 18), (309.4, 329.6, PCB_D + 10.0, 18),   # MIDI DIN in/out (CUI SDS-50J)
-                      (333.4, 345.6, PCB_D + 5.6, 12.5),                                    # USB-B (OST B1HS)
-                      (351.5, 361.5, PCB_D + 1.7, 5.0)]:                                    # USB-C power (GCT USB4125)
-    tray -= bx(x0 - 0.5, -1, x1 + 0.5, WALL + 1, zc - h / 2, zc + h / 2)
-tray -= Pos(392, Y(1.5), 22) * Rot(90, 0, 0) * Cylinder(4.1, WALL + 2)                    # panel DC jack, 5.5/2.1 with M8 thread
-# vents under the power board (heatsinks) and in the rear wall behind it
+# Connector openings, from the footprints' Fab boxes: the MIDI hub through the rear wall, the digital board through the right wall
+# (both PCB tops at z 10.6). shortcut: connector heights from generic datasheets (CUI SDS-50J DIN, OST USB-B1HS, GCT USB4125,
+# Molex 67643 USB-A), file to fit.
+HEIGHT = {'DIN-5': (10.0, 18), 'USB_B': (5.6, 12.5), 'USB_C': (1.7, 5.0), 'USB_A': (3.5, 7.5)}  # opening centre above the PCB, height
+for e in BOARDS:
+    if e[0] not in ('mixer_midi', 'mixer_digital'): continue
+    for f in B[e[0]]['fps']:
+        k = next((k for k in HEIGHT if f['lib'].startswith(k)), None)
+        if not k or (e[0] == 'mixer_digital' and f['ref'] == 'J13'): continue  # J13: internal USB-A to the controller
+        zc, h = e[4] + 1.6 + HEIGHT[k][0], HEIGHT[k][1]
+        x0, y0, x1, y1 = footprint_box(e, f)
+        if e[3] == 0: tray -= bx(x0 - 0.5, -1, x1 + 0.5, WALL + 1, zc - h / 2, zc + h / 2)
+        else: tray -= bx(W - WALL - 1, y0 - 0.5, W + 1, y1 + 0.5, zc - h / 2, zc + h / 2)
+tray -= Pos(W - 1.5, Y(60), 30) * Rot(0, 90, 0) * Cylinder(4.1, WALL + 2)                 # panel DC jack (5.5/2.1, M8), right wall
+# vents under the power board (heatsinks) and high in the rear wall
 for i in range(10):
-    tray -= bx(290 + i * 8, 100, 293 + i * 8, 165, -1, FLOOR + 1)
+    tray -= bx(225 + i * 8, 85, 228 + i * 8, 150, -1, FLOOR + 1)
 for i in range(6):
-    tray -= bx(282 + i * 12, -1, 288 + i * 12, WALL + 1, 34, 42)
+    tray -= bx(205 + i * 30, -1, 215 + i * 30, WALL + 1, 34, 42)
 
 # seam flanges between the quarters: 4 mm ribs on both sides of each seam, M3 bolts across
 SX, SY = W / 2, D / 2
@@ -110,8 +108,8 @@ for x, y in FX['shelf_bosses']:
         yr = riser_rear(x)
         riser += bx(x - 2, yr - 5, x + 2, yr, Z_SHELF - 10, Z_SHELF)
         riser -= cyl(x, y, PILOT_D, Z_SHELF - 9, Z_SHELF + 0.1)
-risers = {'riser_left': riser & bx(0, 0, 191.5, 200, 30, 50), 'riser_middle': riser & bx(191.5, 0, 255, 200, 30, 50),
-          'riser_right': riser & bx(255, 0, W, 200, 30, 50)}
+risers = {'riser_left': riser & bx(0, 0, 129.5, 200, 30, 50), 'riser_middle': riser & bx(129.5, 0, 193.5, 200, 30, 50),
+          'riser_right': riser & bx(193.5, 0, W, 200, 30, 50)}
 
 # ---------------- armrest (prints diagonally: left part 254 x 31) ----------------
 arm = bx(0, FX['plate_front'], W, D, Z_ARM, Z_ARM + 3)

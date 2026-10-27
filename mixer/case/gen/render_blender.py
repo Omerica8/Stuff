@@ -15,11 +15,8 @@ CASE = os.environ.get('CASE', '1') != '0'
 D, MM = 353.0, 0.001
 Z_PLATE_TOP, Z_SHELF_TOP = 35.6, 49.6  # printed plate 2.5 mm on z 33.1, printed shelf 3 mm on z 46.6
 P = lambda x, y, z: (x * MM, (D - y) * MM, z * MM)  # case coords (mm) -> Blender (m), front at y = 0
-# board, case x of its left edge, case y of its rear edge, PCB underside z (same as case.py)
-BOARDS = [('mixer_strip', 6, 5, 21.0), ('mixer_strip', 37, 5, 21.0), ('mixer_strip', 68, 5, 21.0), ('mixer_strip', 99, 5, 21.0),
-          ('mixer_stereo', 130, 5, 21.0), ('mixer_stereo', 161, 5, 21.0), ('mixer_master', 192, 5, 21.0),
-          ('controller', 256, 230, 24.0), ('mixer_digital', 278, 5, 9.0), ('mixer_power', 278, 88, 8.0),
-          ('mixer_reverb', 320, 177, 8.0)]
+import sys; sys.path.insert(0, HERE)
+from layout import BOARDS, to_case, footprint_box, size  # board placement shared with panels.py and case.py
 ZT = {'mixer_strip': 22.6, 'mixer_stereo': 22.6, 'mixer_master': 22.6, 'controller': 25.6}  # PCB tops of the panel boards
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -93,49 +90,51 @@ if CASE:
         o.location = P(x, y + 1.5, (Z_PLATE_TOP if piece == 'plate' else Z_SHELF_TOP) + 0.02); link(o, INK)
 else:
     # ---------------- boards with their KiCad 3D models ----------------
-    for name, bx, by, zb in BOARDS:
+    for e in BOARDS:
+        name, bx, by, rot, zb = e
         ex0, ey0 = B[name]['edge'][0] + 0.05, B[name]['edge'][1] + 0.05
         before = set(bpy.data.objects)
         bpy.ops.import_scene.gltf(filepath=os.path.join(HERE, '..', 'glb', f'{name}.glb'))
         for o in set(bpy.data.objects) - before:  # glb: metres, x = kicad x, y = -kicad y, z = 0 at the PCB underside
             if o.parent is None:
-                o.location = ((bx - ex0) * MM, (D - by + ey0) * MM, zb * MM); o.parent = rig
+                if rot == 0:
+                    o.location = ((bx - ex0) * MM, (D - by + ey0) * MM, zb * MM)
+                else:  # top edge to the right wall: (gx, gy) -> (gy, -gx)
+                    o.rotation_mode = 'XYZ'; o.rotation_euler = (0, 0, math.radians(-90))  # glTF roots import in quaternion mode
+                    o.location = ((bx + size(name)[1] + ey0) * MM, (D - by + ex0) * MM, zb * MM)
+                o.parent = rig
+    entry = {e[0]: e for e in BOARDS}
     # stand-ins for parts KiCad has no model for (heatsinks), and the modules
     for f in B['mixer_power']['fps']:
         if f['lib'].startswith('Heatsink'):
-            bs = [g for g in f['fab'] if g[0] == 'b']
-            x0, y0, x1, y1 = min(g[1] for g in bs), min(g[2] for g in bs), max(g[3] for g in bs), max(g[4] for g in bs)
-            box(278 + (x0 + x1) / 2 - 100, 88 + (y0 + y1) / 2 - 100, 9.6, x1 - x0, y1 - y0, 35, BLACK)
+            x0, y0, x1, y1 = footprint_box(entry['mixer_power'], f)
+            box((x0 + x1) / 2, (y0 + y1) / 2, entry['mixer_power'][4] + 1.6, x1 - x0, y1 - y0, 35, BLACK)
     for f in B['mixer_reverb']['fps']:
         if 'Akizuki' in f['lib']:  # AE-FV-1-DIP module on its sockets
-            bs = [g for g in f['fab'] if g[0] == 'b']
-            x0, y0, x1, y1 = min(g[1] for g in bs), min(g[2] for g in bs), max(g[3] for g in bs), max(g[4] for g in bs)
-            cx, cy = 320 + (x0 + x1) / 2 - 100, 177 + (y0 + y1) / 2 - 30
-            box(cx, cy, 9.6 + 8.5, x1 - x0, y1 - y0, 1.6, GREEN); box(cx, cy, 9.6 + 10.1, 10.5, 5.3, 1.8, BLACK)
+            x0, y0, x1, y1 = footprint_box(entry['mixer_reverb'], f); zr = entry['mixer_reverb'][4] + 1.6
+            box((x0 + x1) / 2, (y0 + y1) / 2, zr + 8.5, x1 - x0, y1 - y0, 1.6, GREEN); box((x0 + x1) / 2, (y0 + y1) / 2, zr + 10.1, 5.3, 10.5, 1.8, BLACK)
+    for f in B['mixer_midi']['fps']:
+        if f['ref'] == 'J10':  # Raspberry Pi Pico in its two 1x20 sockets (J10/J11)
+            x0, y0, x1, y1 = footprint_box(entry['mixer_midi'], f)
+            box((x0 + x1) / 2, y0 - 8.9 + 1.3, entry['mixer_midi'][4] + 1.6 + 8.5, 51, 21, 1.0, GREEN)
+            box((x0 + x1) / 2, y0 - 8.9 + 1.3, entry['mixer_midi'][4] + 1.6 + 9.5, 7, 7, 0.9, BLACK)
     # ESP32-S3 DevKitC soldered on its pins (antenna to the rear, USB-C to the front)
-    ex, ey, ez = 256 + (214.55 + 239.95) / 2 - 100, 230 + (138.61 + 191.95) / 2 - 100, 25.6 + 2.5
+    (ex, ey), ez = to_case(entry['controller'], (214.55 + 239.95) / 2, (138.61 + 191.95) / 2), 25.6 + 2.5
     box(ex, ey, ez, 26, 69, 1.6, BLACK); box(ex, ey - 22, ez + 1.6, 18, 25.5, 3.1, STEEL); box(ex, ey + 33, ez + 1.6, 9, 7.5, 3.2, STEEL)
     # ribbon cables: POWER (J2) and BUS (J3) daisy-chained across the audio boards, DIGITAL from master J4 to the digital board,
     # power board J2 to the POWER chain. shortcut: drawn straight between plugs, real cables will drape.
-    hdr = {}
-    for name, bx, by, zb in BOARDS:
-        ex0, ey0 = B[name]['edge'][0] + 0.05, B[name]['edge'][1] + 0.05
-        for f in B[name]['fps']:
-            if f['lib'].startswith('IDC-Header_2x05'):
-                rot = round(f['rot']) % 180
-                cx, cy = (1.27, 5.08) if rot == 0 else (5.08, -1.27)
-                hdr.setdefault((name, f['ref']), []).append((bx + f['x'] + cx - ex0, by + f['y'] + cy - ey0, zb + 1.6, rot))
     plugs = {}
-    for (name, ref), lst in hdr.items():
-        for i, (x, y, zt, rot) in enumerate(lst):
-            w, l = (9.5, 18) if rot == 0 else (18, 9.5)
-            box(x, y, zt + 4, w, l, 9, BLACK)
-            plugs.setdefault((name, ref), []).append((x, y, zt + 13.5))
+    for e in BOARDS:
+        for f in B[e[0]]['fps']:
+            if f['lib'].startswith('IDC-Header_2x05'):
+                x0, y0, x1, y1 = footprint_box(e, f); zt = e[4] + 1.6
+                box((x0 + x1) / 2, (y0 + y1) / 2, zt + 4, x1 - x0 + 0.5, y1 - y0 + 0.5, 9, BLACK)
+                plugs.setdefault((e[0], f['ref']), []).append(((x0 + x1) / 2, (y0 + y1) / 2, zt + 13.5))
     def chain(points):
         for a, b in zip(points, points[1:]):
             strip(a, b, 12.7, 0.9, RIBBON)
             strip((a[0], a[1] - 5.6, a[2] + 0.05), (b[0], b[1] - 5.6, b[2] + 0.05), 1.3, 0.92, STRIPE)
-    audio = [n for n, *_ in BOARDS if n.startswith(('mixer_strip', 'mixer_stereo', 'mixer_master'))]
+    audio = [e[0] for e in BOARDS if e[0].startswith(('mixer_strip', 'mixer_stereo', 'mixer_master'))]
     for ref, lift in (('J2', 0.0), ('J3', 1.5)):  # both chains run along the same row: BUS rides over the POWER ribbon
         pts = []
         for name in dict.fromkeys(audio):
@@ -144,7 +143,7 @@ else:
     pw = plugs[('mixer_power', 'J2')][0]; mj2 = plugs[('mixer_master', 'J2')][0]
     chain([pw, (pw[0], 336, 22.5), (mj2[0] + 12, 336, 30), mj2])
     mj4 = plugs[('mixer_master', 'J4')][0]; dj4 = plugs[('mixer_digital', 'J4')][0]
-    chain([mj4, (mj4[0], 345, 30), (268, 345, 20), (268, dj4[1], 20), dj4])
+    chain([mj4, (mj4[0], 345, 30), (342, 345, 20), (342, dj4[1] + 10, 20), dj4])
 
 # ---------------- controls (stand-ins); with CASE=0 they get bodies down to their boards ----------------
 def cap_colour(val):

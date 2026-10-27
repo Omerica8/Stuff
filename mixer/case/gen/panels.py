@@ -16,14 +16,13 @@ B = json.load(open(os.path.join(HERE, 'boards.json')))
 
 W = 407.0
 MIN_WEB = float(os.environ.get('MIN_WEB', 1.5))  # metal left between cuts and to the edge; cutters ask for ~1x thickness
-# Board placement: (board, case x of the board's left edge, case y of its rear edge)
-PLACE = [('mixer_strip', 6, 5), ('mixer_strip', 37, 5), ('mixer_strip', 68, 5), ('mixer_strip', 99, 5),
-         ('mixer_stereo', 130, 5), ('mixer_stereo', 161, 5), ('mixer_master', 192, 5), ('controller', 256, 230)]
+from layout import BOARDS, to_case
+PLACE = [e for e in BOARDS if e[0] in ('mixer_strip', 'mixer_stereo', 'mixer_master', 'controller')]  # boards with panel parts
 # Riser walls (printed, hung from the shelf): (x from, x to, rear face y, front face y).
 # Rear face clears the jack bodies under the shelf (Fab extents + 0.3); the plate's rear edge is the front face.
 #   mono: NCJ6 flange ends local 28.6, PVA2 bodies start 30.8 (their cut-outs become notches in the plate edge)
 #   stereo: NJ5 J9 ends 34.1, 3.5 mm J10 cut starts 39.8;  master left: NJ3 J10 ends 64.2;  master right: NJ3 J8/J9 end 46.6, J11 cut starts 52.3
-RISER = [(0, 129.5, 33.9, 35.5), (129.5, 191.5, 39.4, 41.4), (191.5, 223, 69.5, 71.5), (223, 253, 51.9, 53.9), (253, W, 178, 180)]
+RISER = [(0, 67.5, 33.9, 35.5), (67.5, 129.5, 39.4, 41.4), (129.5, 161, 69.5, 71.5), (161, 191, 51.9, 53.9), (191, W, 178, 180)]
 PLATE_FRONT = 327.0  # ribbon plugs start behind this; the printed armrest covers the rest
 
 def outline(shelf_piece):
@@ -58,9 +57,9 @@ def label_text(v):
             v = v[len(p):]
     return v.strip()
 
-for name, bx, by in PLACE:
-    ex0, ey0 = B[name]['edge'][0] + 0.05, B[name]['edge'][1] + 0.05
-    T = lambda x, y: (bx + x - ex0, by + y - ey0)
+for entry in PLACE:
+    name = entry[0]
+    T = lambda x, y, e=entry: to_case(e, x, y)
     for f in B[name]['fps']:
         lib, px, py = f['lib'], f['x'], f['y']
         P = lambda dx, dy: T(px + dx, py + dy)
@@ -117,13 +116,13 @@ for name, bx, by in PLACE:
 
 # Controller: window over the ESP32 (BOOT/RESET reachable, printed lid), J1/J2 midline
 ex0, ey0 = 100, 100
-esp_x = 256 + (214.55 + 239.95) / 2 - ex0
+esp_x = to_case(next(e for e in BOARDS if e[0] == 'controller'), (214.55 + 239.95) / 2, 0)[0]
 plate.append(('rect', esp_x, 294, 30, 56))
 labels.append((esp_x, 294, 'ESP32 (lid)', 'plate'))
 
 # Shelf: 2.8" SPI TFT (ILI9341 module, 86 x 50 PCB) hung under the shelf over the digital board, cable to controller J4.
 # shortcut: generic module numbers (active area 57.6 x 43.2, holes ~80 x 44), measure the real TFT before ordering the shelf.
-TFT = (328, 42)
+TFT = (360, 126)  # over the digital board
 shelf.append(('rect', TFT[0], TFT[1], 60, 45))
 for sx in (-40, 40):
     for sy in (-22, 22):
@@ -133,9 +132,9 @@ labels.append((TFT[0], TFT[1] + 28, 'DISPLAY', 'shelf'))
 # Fixing holes (M3). Plate: posts in the right region (the boards hold the rest through their standoffs, the armrest
 # lip clamps the front edge). Shelf: M3 self-tappers into printed bosses on the rear wall, side walls and risers.
 # Keep in step with case.py (PLATE_POSTS, SHELF_BOSSES).
-PLATE_POSTS = [(262, 185), (300, 185), (402.5, 185)]  # 262 keeps clear of the lap joint at x 253
-SHELF_BOSSES = [(4.5, 4.5), (98.5, 4.5), (222, 4.5), (300, 4.5), (402.5, 4.5), (4.5, 20), (402.5, 90),
-                (36.5, 31.4), (67.5, 31.4), (98.5, 31.4), (160.5, 36.9), (197, 67), (231.7, 49.4), (300, 175.5), (380, 175.5)]
+PLATE_POSTS = [(200, 185), (270, 185), (330, 185), (385, 185)]  # clear of the lap joint at x 342
+SHELF_BOSSES = [(4.5, 4.5), (36.5, 4.5), (98.5, 4.5), (230, 4.5), (300, 4.5), (402.5, 4.5), (4.5, 20), (402.5, 90),
+                (36.5, 31.4), (98.5, 36.9), (135, 67), (169.7, 49.4), (230, 175.5), (300, 175.5), (380, 175.5)]
 plate += [('circle', x, y, 3.4) for x, y in PLATE_POSTS]
 shelf += [('circle', x, y, 3.4) for x, y in SHELF_BOSSES]
 json.dump(dict(plate_posts=PLATE_POSTS, shelf_bosses=SHELF_BOSSES, riser=RISER, plate_front=PLATE_FRONT,
@@ -186,15 +185,14 @@ def build(name, cuts, pts):
 
 PIECES, problems = {}, []
 # Printed top: tiles that fit the Ender 3 bed, joined by glued half-lap joints LAP mm either side of the shared edge.
-# Joint lines sit in hole-free bands (checked below): mono strips y 142, stereo y 193, master y 226, columns at x 191.5 / 253 (shelf 190 / 254).
+# Joint lines sit in hole-free bands (checked below): mono strips y 142, stereo y 193, master y 226, columns at x 191 / 342 (shelf 127.8 / 250).
 LAP = 3.5
-TILES = {'plate': {'rear_left': [(0, 0), (191.5, 0), (191.5, 193), (129.5, 193), (129.5, 142), (0, 142)],
-                   'front_left': [(0, 142), (129.5, 142), (129.5, 193), (191.5, 193), (191.5, 400), (0, 400)],
-                   'rear_master': [(191.5, 0), (253, 0), (253, 226), (191.5, 226)],
-                   'front_master': [(191.5, 226), (253, 226), (253, 400), (191.5, 400)],
-                   'right': [(253, 0), (407, 0), (407, 400), (253, 400)]},
-         'shelf': {'left': [(0, 0), (190, 0), (190, 200), (0, 200)], 'middle': [(190, 0), (254, 0), (254, 53.9), (190, 53.9)],
-                   'right': [(254, 0), (407, 0), (407, 200), (253, 200), (253, 53.9), (254, 53.9)]}}
+TILES = {'plate': {'rear_left': [(0, 0), (191, 0), (191, 226), (129.5, 226), (129.5, 193), (67.5, 193), (67.5, 142), (0, 142)],
+                   'front_left': [(0, 142), (67.5, 142), (67.5, 193), (129.5, 193), (129.5, 226), (191, 226), (191, 400), (0, 400)],
+                   'right': [(191, 0), (342, 0), (342, 400), (191, 400)],
+                   'far_right': [(342, 0), (407, 0), (407, 400), (342, 400)]},
+         'shelf': {'left': [(0, 0), (127.8, 0), (127.8, 200), (0, 200)], 'middle': [(127.8, 0), (250, 0), (250, 200), (127.8, 200)],
+                   'right': [(250, 0), (407, 0), (407, 200), (250, 200)]}}
 def joints(n, poly):
     """Shared tile edges inside the piece, as (tile a, tile b, [(x0, y0), (x1, y1)]) segments."""
     out, names, P = [], list(TILES[n]), Polygon(poly).buffer(-0.05)  # interior only: a tile edge along the outline isn't a joint

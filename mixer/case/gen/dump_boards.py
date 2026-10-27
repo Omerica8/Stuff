@@ -3,7 +3,7 @@ import pcbnew, json, sys, os
 SB = sys.argv[1]  # kicad-sandbox folder
 t = pcbnew.ToMM
 out = {}
-for name in ['mixer_strip','mixer_stereo','mixer_master','controller','mixer_digital','mixer_power','mixer_reverb']:
+for name in ['mixer_strip','mixer_stereo','mixer_master','controller','mixer_digital','mixer_power','mixer_reverb','mixer_midi']:
     b = pcbnew.LoadBoard(os.path.join(SB, name, name + '.kicad_pcb'))
     bb = b.GetBoardEdgesBoundingBox()
     fps = []

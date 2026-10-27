@@ -6,7 +6,7 @@
 
 | File | What it is |
 |---|---|
-| `stl/top_plate_*.stl` (5) | Printed control plate tiles: `rear_left`, `front_left`, `rear_master`, `front_master`, `right` |
+| `stl/top_plate_*.stl` (4) | Printed control plate tiles: `rear_left`, `front_left`, `right`, `far_right` |
 | `stl/top_shelf_*.stl` (3) | Printed jack shelf tiles: `left`, `middle`, `right` |
 | `stl/tray_*`, `riser_*`, `armrest_*`, `esp32_lid`, `rear_foot_x2` | Printed case (see below) |
 | `out/panels_1to1_letter.pdf` | **1:1 paper print for the fit check**, US Letter tiles. Dashed lines are the glued joints between printed tiles |
@@ -41,7 +41,7 @@ uv run --no-project --with build123d --with shapely python printed_top.py
 | NCJ6FA-V combo | ≤ 3 mm panel | 3 mm, fine |
 | NC3MAAV XLR (master) | 2.7 mm loose spacer | **Printed 24 × 24 × 2.7 mm pad** under the shelf. The nose ends at the shelf's underside, recessed 3 mm, and the plug's sleeve still mates |
 
-**Tiles and joints.** The plate splits into 5 tiles and the shelf into 3. All are ≤ 195 mm, so they fit the Ender 3. Neighbouring tiles overlap in a half-lap joint, 3.5 mm either side of the dashed line and half the thickness each, for gluing (CA or epoxy). The joint lines run through hole-free bands: the mono strips at y 142, the stereo strips at y 193 (with a step between them), the master at y 226, the columns at x 191.5 and 253, and the shelf at x 190 and 254. Every tile is also screwed down through the board standoffs, so joints only have to stay flush.
+**Tiles and joints.** The plate splits into 4 tiles and the shelf into 3. All are ≤ 195 mm, so they fit the Ender 3. Neighbouring tiles overlap in a half-lap joint, 3.5 mm either side of the dashed line and half the thickness each, for gluing (CA or epoxy). The joint lines run through hole-free bands (see Layout below). Every tile is also screwed down through the board standoffs, so joints only have to stay flush.
 
 **Printing.** Print each top tile **face down** on the bed for a smooth surface. The nut recesses then face the bed with no overhang, and the fader bosses and XLR pads point up. PETG or PLA, 4 walls, 30 % infill. The STLs are in assembly position, so flip them in the slicer.
 
@@ -71,12 +71,27 @@ uv run --no-project --with build123d --with shapely python printed_top.py
 | 2.8" SPI TFT (ILI9341, generic) | window 60 × 45, 4 × Ø3.2 at 80 × 44 | **Measure your display** |
 | Rear wall: MIDI DIN, USB-B, USB-C, DC jack | from datasheet heights | Printed wall: file to fit |
 
-## Layout notes (changes from STATUS.md)
+## Layout (option 1, 2026-10-27: 2 mic strips + MIDI hub)
 
-1. **Riser positions:** the KiCad Fab layer put the stereo NJ5 and master NJ3 jacks deeper than HEIGHTS.md said. New riser faces (case y, rear/front): mono 33.9/35.5, stereo 39.4/41.4, master left 69.5/71.5, master right 51.9/53.9, right region 178/180.
-2. **The risers hang from the shelf**, screwed up into it through bosses between the jacks.
-3. **How the plate is held:** M3 F-F standoffs from each audio board's H1/H2 (10.5 mm) and from controller H1/H2 (7.5 mm), plus the pot and jack nuts, 3 posts in the right region (x 262, 300 and 402.5 at y 185), and the armrest's lip.
-4. **Display** under the shelf over the digital board, on a cable to controller J4. **Reverb carrier** at x 320–394, y 177–227.
+Board positions live in `gen/layout.py`. `panels.py`, `case.py` and `render_blender.py` all read them, and `python layout.py` checks that every board is inside the walls and that no two overlap.
+
+| Board | Case x | Case y | Notes |
+|---|---|---|---|
+| mono strips ×2 | 6, 37 | 5–348 | |
+| stereo strips ×2 | 68, 99 | 5–348 | |
+| master | 130–190 | 5–348 | |
+| controller | 194–339 | 230–330 | |
+| MIDI hub | 196–396 | 5–69 | 8 DIN + USB-A through the rear wall |
+| power | 215–315 | 76–161 | heatsinks under the shelf |
+| digital | 326–401 | 76–176 | turned 90°: USB-B, USB-C and 2 DIN through the **right** wall |
+| reverb carrier | 348–398 | 245–319 | turned 90°, under the plate right of the controller |
+
+The case stays 407 × 353. The 62 mm freed by dropping 2 mic strips makes room for the hub along the back wall. The DC jack moves to the right wall (y 60).
+
+- **Risers** (case y, rear/front): mono 33.9/35.5 (x 0–67.5), stereo 39.4/41.4 (67.5–129.5), master left 69.5/71.5 (129.5–161), master right 51.9/53.9 (161–191), right region 178/180. They hang from the shelf on bosses between the jacks.
+- **Plate** is held by M3 F-F standoffs from each audio board's H1/H2 (10.5 mm) and from the controller's H1/H2 (7.5 mm), plus the pot nuts, 4 posts at y 185 (x 200, 270, 330, 385) and the armrest lip.
+- **Display** goes under the shelf over the digital board (window centre x 360, y 126).
+- **Printed tiles:** the plate splits at x 191 and x 342, with a stepped joint across the strips (mono y 142, stereo y 193, master y 226). The shelf splits at x 127.8 and 250.
 
 ## Printed case parts
 
