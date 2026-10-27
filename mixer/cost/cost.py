@@ -58,9 +58,8 @@ ROWS = [
     ("PCBs", "Power, digital, reverb, controller", "4 small boards, 5 pcs each", 1, 10.00, "JLCPCB", EST),
     ("PCBs", "Shipping + import duty", "DHL to US, ~1.5 kg", 1, 45.00, "JLCPCB", EST),
     # --- Case
-    ("Case", "Control plate", "407x292 mm, 2.0 mm 5052 aluminium, 141 cuts (plate.dxf)", 1, 70.00, "SendCutSend", EST),
-    ("Case", "Jack shelf", "407x180 mm, 1.5 mm 5052 aluminium, 46 cuts (shelf.dxf)", 1, 35.00, "SendCutSend", EST),
-    ("Case", "Filament", "PLA ~0.8 kg (923 cm3 solid STL volume at ~60% fill)", 1, 18.00, "Amazon", EST),
+    ("Case", "Printed top (control plate + jack shelf)", "Omer chose printed over aluminium 2026-10-27; PLA ~0.45 kg, split into bed-size tiles", 1, 0.00, "-", EST),
+    ("Case", "Filament", "PLA 2 spools: case ~0.8 kg + printed top ~0.45 kg + spare", 2, 18.00, "Amazon", EST),
     ("Case", "Hardware", "M3 F-F standoffs 10.5/7.5 mm, M3x10 countersunk, M2x8 + 4 mm spacers, seam bolts", 1, 15.00, "Amazon", EST),
     ("Case", "M3 screws + heat-set inserts", "Already bought for the controller", 1, 0.00, "-", OWNED),
     # --- Knobs
