@@ -1,14 +1,26 @@
-# Stuff: FL Studio controller and audio mixer
+# Stuff: Omer's audio projects
 
-Omer's hardware projects. The `mixer` branch holds everything.
+Home for all of Omer's audio hardware and software projects. The default branch is `mixer` and holds everything.
+
+## Projects
+
+| Project | Folders | State |
+|---|---|---|
+| FL Studio MIDI controller (ESP32-S3, faders, encoders, TFT) | [controller/](controller/), [firmware/](firmware/), [shopping/](shopping/) | PCB designed, firmware in steps |
+| Full-size analog mixer (Yamaha MG10XU style) | [mixer/](mixer/) ([README](mixer/README.md)) | Boards and case in progress |
+
+## Shared
 
 | Folder | What's in it |
 |---|---|
-| [controller/](controller/) | ESP32-S3 MIDI controller PCB: schematic, JLCPCB gerbers, BOMs, renders, 1:1 print, assembly guide, project handoff notes |
-| [firmware/](firmware/) | Arduino sketches for the controller, one per build step (MIDI test, fader, encoders, ...) |
-| [mixer/](mixer/) | Full-size analog audio mixer: design plan ([README](mixer/README.md)) and Phase 1 power board |
-| [shopping/](shopping/) | Parts shopping lists |
+| [wiki/](wiki/) | Project wiki, start at [wiki/index.md](wiki/index.md) |
 | [kicad-mcp/](kicad-mcp/) | Setup notes for running KiCad through MCP on Omer's PC |
 | [uploads/](uploads/) | Reference photos, videos and spreadsheets Omer uploaded |
+
+## Adding a new project
+
+1. Give it its own top-level folder with a short kebab-case name (e.g. `guitar-pedal/`).
+2. Put a `README.md` in it saying what it is and its current state.
+3. Add a row to the Projects table above, and a line to [wiki/index.md](wiki/index.md).
 
 Older versions of the controller outputs are in git history (removed from the tree on 2026-10-26).
