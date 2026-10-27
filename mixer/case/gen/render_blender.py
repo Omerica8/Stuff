@@ -12,6 +12,8 @@ OUT = os.path.join(HERE, '..', 'out')
 S = json.load(open(os.path.join(HERE, 'render_scene.json')))
 B = json.load(open(os.path.join(HERE, 'boards.json')))
 CASE = os.environ.get('CASE', '1') != '0'
+DETAIL = os.environ.get('DETAIL') == '1'      # the printed parts alone, no knobs or labels (renders render_case_*.png)
+EXPLODE = DETAIL and os.environ.get('EXPLODE') == '1'
 D, MM = 353.0, 0.001
 Z_PLATE_TOP, Z_SHELF_TOP = 35.6, 49.6  # printed plate 2.5 mm on z 33.1, printed shelf 3 mm on z 46.6
 P = lambda x, y, z: (x * MM, (D - y) * MM, z * MM)  # case coords (mm) -> Blender (m), front at y = 0
@@ -82,13 +84,20 @@ if CASE:
         if not f.endswith('.stl') or f.startswith('rear_foot'): continue
         bpy.ops.wm.stl_import(filepath=os.path.join(STL, f), global_scale=MM)
         o = bpy.context.selected_objects[0]
-        link(o, TOP if f.startswith('top_') else BLACK if f.startswith(('armrest', 'esp32')) else PLA)
+        link(o, TOP if f.startswith('top_') else BLACK if f.startswith(('armrest', 'esp32')) else
+             mat('riser PLA', (0.6, 0.25, 0.04), 0, 0.5) if DETAIL and f.startswith('riser') else PLA)
         for poly in o.data.polygons: poly.use_smooth = False
-    for x, y, text, piece in S['labels']:  # printed overlay labels (sticker or paint pen)
+        if EXPLODE:  # lift each layer and spread the tiles so every joint, boss and recess shows
+            n = f[:-4]; c = o.matrix_world @ (sum((v.co for v in o.data.vertices), Vector()) / len(o.data.vertices))  # mesh is in mm, object scaled
+            spread = {'tray': 18, 'top_plate': 18, 'top_shelf': 18}.get(next((k for k in ('tray', 'top_plate', 'top_shelf') if n.startswith(k)), ''), 0)
+            lift = {'tray': 0, 'riser': 150, 'armrest': 60, 'esp32': 215, 'top_plate': 195, 'top_shelf': 255}[next(k for k in ('tray', 'riser', 'armrest', 'esp32', 'top_plate', 'top_shelf') if n.startswith(k))]
+            o.location = Vector(((c.x - 0.2035) * spread / 100, (c.y - 0.1765) * spread / 100 - (0.07 if n.startswith('armrest') else 0), lift * MM))
+    for x, y, text, piece in ([] if DETAIL else S['labels']):  # printed overlay labels (sticker or paint pen)
         cu = bpy.data.curves.new(text, 'FONT'); cu.body = text; cu.size = 2.4 * MM; cu.align_x = 'CENTER'; cu.align_y = 'CENTER'
         o = bpy.data.objects.new(text, cu); scene.collection.objects.link(o)
         o.location = P(x, y + 1.5, (Z_PLATE_TOP if piece == 'plate' else Z_SHELF_TOP) + 0.02); link(o, INK)
-else:
+before_boards = set(bpy.data.objects)
+if not CASE or DETAIL:
     # ---------------- boards with their KiCad 3D models ----------------
     for e in BOARDS:
         name, bx, by, rot, zb = e
@@ -113,6 +122,11 @@ else:
         if 'Akizuki' in f['lib']:  # AE-FV-1-DIP module on its sockets
             x0, y0, x1, y1 = footprint_box(entry['mixer_reverb'], f); zr = entry['mixer_reverb'][4] + 1.6
             box((x0 + x1) / 2, (y0 + y1) / 2, zr + 8.5, x1 - x0, y1 - y0, 1.6, GREEN); box((x0 + x1) / 2, (y0 + y1) / 2, zr + 10.1, 5.3, 10.5, 1.8, BLACK)
+    for e in BOARDS:  # MIDI DIN sockets (KiCad has no model for the CUI SDS-50J): body plus a socket face
+        for f in B[e[0]]['fps']:
+            if f['lib'].startswith('DIN-5'):
+                x0, y0, x1, y1 = footprint_box(e, f)
+                box((x0 + x1) / 2, (y0 + y1) / 2, e[4] + 1.6, x1 - x0, y1 - y0, 20.5, BLACK)
     for f in B['mixer_midi']['fps']:
         if f['ref'] == 'J10':  # Raspberry Pi Pico in its two 1x20 sockets (J10/J11)
             x0, y0, x1, y1 = footprint_box(entry['mixer_midi'], f)
@@ -161,29 +175,30 @@ def knob(x, y, d, h, colour, z0=Z_PLATE_TOP + 1.0):
     box(x, y - d * 0.22, z0 + h - 0.1, 0.9, d * 0.38, 0.4, WHITE)        # pointer line (pointing to the rear = 12 o'clock)
 
 meter = sorted([p for p in S['parts'] if p['kind'] == 'led3' and p['board'] == 'mixer_master'], key=lambda p: (p['cut'][1], -p['cut'][2]))
+BODIES = not CASE or DETAIL  # part bodies down to the boards, when the boards are shown
 for p in S['parts']:
     k, c = p['kind'], p['cut']
     x, y = c[1], c[2]
     zt = ZT.get(p['board'], 22.6)
     if k in ('pot', 'pot_dual'):
         knob(x, y, 15 if k == 'pot' else 17, 16, cap_colour(p['val']))
-        if not CASE:
+        if BODIES:
             box(x, y, zt, 9.8, 11, 10, POTBLUE); cyl(x, y, zt + 10, 7, 5, NICKEL, 24); cyl(x, y, zt + 15, 6, Z_PLATE_TOP + 1 - zt - 15, STEEL, 24)
     elif k == 'encoder':
         cyl(x, y, Z_PLATE_TOP + 1, 14, 15, NICKEL); cyl(x, y, Z_PLATE_TOP + 15.9, 11, 0.2, BLACK)
-        if not CASE:
+        if BODIES:
             box(x, y, zt, 12, 13, 4.5, STEEL); cyl(x, y, zt + 4.5, 7, 7, NICKEL, 24); cyl(x, y, zt + 11.5, 6, Z_PLATE_TOP + 1 - zt - 11.5, STEEL, 24)
     elif k == 'fader':
         travel = c[4] - 5
         fy = y - travel * 0.25                                            # three quarters up
         box(x, fy, Z_PLATE_TOP + 4, 12, 20, 9, BLACK); box(x, fy, Z_PLATE_TOP + 13, 12.2, 1.2, 0.2, WHITE)
         cyl(x, fy, Z_PLATE_TOP, 1.2, 4, NICKEL, 12)
-        if not CASE:
+        if BODIES:
             box(x, y, zt, 9, travel + 15, 6.5, STEEL); box(x, fy, zt + 6.5, 1.2, 4, Z_PLATE_TOP + 4 - zt - 6.5, STEEL)
     elif k == 'pva':
         w, l = c[3] - 1.5, c[4] - 1.5
         box(x, y, Z_PLATE_TOP - 0.5, w, l, 5.5, CAPS['red'] if '48' in p['val'] else CAPS['grey'])
-        if not CASE: box(x, y, zt, c[3] - 0.5, c[4] - 0.5, 11, WHITE)
+        if BODIES: box(x, y, zt, c[3] - 0.5, c[4] - 0.5, 11, WHITE)
     elif k in ('led3', 'led5'):
         if k == 'led3' and p in meter:
             i = meter.index(p) % 10; col = (0.1, 1, 0.15) if i < 6 else (1, 0.75, 0.05) if i < 8 else (1, 0.05, 0.02)
@@ -192,10 +207,10 @@ for p in S['parts']:
             col, lit = (1, 0.05, 0.02), k == 'led5'
         d = 3 if k == 'led3' else 5
         cyl(x, y, Z_PLATE_TOP - 0.5, d, 1.6 if k == 'led3' else 2.5, mat(f'led {col} {lit}', col, 0, 0.2, 6 if lit else 0.0), 16)
-        if not CASE: cyl(x, y, zt, d, Z_PLATE_TOP - 0.5 - zt, mat(f'led body {col}', col, 0, 0.15), 16)
+        if BODIES: cyl(x, y, zt, d, Z_PLATE_TOP - 0.5 - zt, mat(f'led body {col}', col, 0, 0.15), 16)
     elif k == 'jack35':
         cyl(x, y, Z_PLATE_TOP, 12, 0.6, NICKEL, 6); cyl(x, y, Z_PLATE_TOP + 0.6, 8, 2, NICKEL, 6); cyl(x, y, Z_PLATE_TOP + 2.65, 3.6, 0.1, HOLE, 16)
-        if not CASE: box(x, y - 2, zt, 9, 10.5, 10.4, BLACK); cyl(x, y, zt + 10.4, 6, Z_PLATE_TOP - zt - 10.4, NICKEL, 24)
+        if BODIES: box(x, y - 2, zt, 9, 10.5, 10.4, BLACK); cyl(x, y, zt + 10.4, 6, Z_PLATE_TOP - zt - 10.4, NICKEL, 24)
     elif k == 'tact':
         cyl(x, y, Z_PLATE_TOP, 7, 6, BLACK, 32)
     elif k == 'latch':
@@ -204,23 +219,29 @@ for p in S['parts']:
         cyl(x, y, Z_SHELF_TOP, 23.5, 4.2, BLACK); cyl(x, y, Z_SHELF_TOP + 4.25, 18, 0.1, HOLE)
         cyl(x, y + 3, Z_SHELF_TOP + 4.3, 6.5, 0.1, NICKEL, 24)
         box(x - 9, y - 6, Z_SHELF_TOP + 4.2, 4, 2, 0.6, NICKEL)          # latch tab
-        if not CASE: box(x, y, zt, 26, 31, Z_SHELF_TOP - zt, BLACK)
+        if BODIES: box(x, y, zt, 26, 31, Z_SHELF_TOP - zt, BLACK)
     elif k == 'xlr':
         cyl(x, y, Z_SHELF_TOP, 23, 1.2, NICKEL); cyl(x, y, Z_SHELF_TOP + 1.25, 17, 0.1, BLACK)
         for a in (90, 210, 330):
             cyl(x + 4.5 * math.cos(math.radians(a)), y + 4.5 * math.sin(math.radians(a)), Z_SHELF_TOP + 1.2, 1.6, 3, NICKEL, 12)
-        if not CASE: box(x, y, zt, 26, 31, Z_SHELF_TOP - zt, BLACK)
+        if BODIES: box(x, y, zt, 26, 31, Z_SHELF_TOP - zt, BLACK)
     elif k == 'trs':
         cyl(x, y, Z_SHELF_TOP, 15, 3.5, BLACK, 32); cyl(x, y, Z_SHELF_TOP + 3.55, 7, 0.1, HOLE, 24)
-        if not CASE: box(x, y, zt, 13, 15, Z_SHELF_TOP - zt, BLACK)
+        if BODIES: box(x, y, zt, 13, 15, Z_SHELF_TOP - zt, BLACK)
 
 # 2.8" display under the shelf window, lit
 tx, ty = S['tft']
 box(tx, ty, 42.5, 86, 50, 1.6, mat('tft pcb', (0.45, 0.03, 0.03))); box(tx - 4, ty, 44.1, 69.2, 50, 2.5, BLACK)
 box(tx - 4, ty, 46.6, 57.6, 43.2, 0.05, mat('screen', (0.05, 0.25, 0.9), 0, 0.1, 2.5))
 
+if EXPLODE:  # boards, parts and display ride together on their own layer between the tray and the top
+    layer = bpy.data.objects.new('boards layer', None); scene.collection.objects.link(layer); layer.parent = rig
+    layer.location.z = 30 * MM
+    for o in set(bpy.data.objects) - before_boards:
+        if o.parent is rig and o is not layer: o.parent = layer
+
 # ---------------- feet (with the case), floor, lights, cameras ----------------
-if CASE:
+if CASE and not DETAIL:
     rig.location = (0, 0, 8 * MM); rig.rotation_euler = (math.radians(10), 0, 0)
     bpy.ops.wm.stl_import(filepath=os.path.join(STL, 'rear_foot_x2.stl'), global_scale=MM)
     foot = bpy.context.selected_objects[0]; foot.data.materials.append(PLA)
@@ -269,8 +290,12 @@ scene.render.resolution_percentage = int(os.environ.get('PCT', 100))
 only = os.environ.get('ONLY')
 scene.view_settings.view_transform = 'AgX'
 tag = '' if CASE else 'boards_'
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'mixer_assembled.blend' if CASE else 'mixer_boards.blend'))
-for cam, fn in ((hero, f'render_{tag}hero.png'), (top, f'render_{tag}top.png')):
+shots = ((hero, f'render_{tag}hero.png'), (top, f'render_{tag}top.png'))
+if DETAIL:
+    target.location = (0.2035, 0.17, 0.13 if EXPLODE else 0.02)
+    shots = ((camera('exploded', (-0.38, -0.62, 0.62), lens=33), 'render_case_exploded.png'),) if EXPLODE else             ((camera('front', (-0.15, -0.5, 0.38), lens=40), 'render_case_front.png'), (camera('rear', (0.72, 0.82, 0.32), lens=40), 'render_case_rear.png'))
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'mixer_case_detail.blend' if DETAIL else 'mixer_assembled.blend' if CASE else 'mixer_boards.blend'))
+for cam, fn in shots:
     if only and only not in fn: continue
     scene.camera = cam; scene.render.filepath = os.path.join(OUT, fn)
     bpy.ops.render.render(write_still=True)
