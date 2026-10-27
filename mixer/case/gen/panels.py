@@ -83,10 +83,9 @@ for entry in PLACE:
         elif 'PVA2' in lib:  # body pokes 0.5 mm into the plate: body outline + 0.5
             x0, y0, x1, y1 = fab_box(f); x, y = T((x0 + x1) / 2, (y0 + y1) / 2)
             plate.append(('rect', x, y, x1 - x0 + 0.5, y1 - y0 + 0.5)); lab = (x, y + 7.5)
-        elif lib == 'LED_D3.0mm':
-            plate.append(('circle', *P(1.27, 0), 3.2))
-        elif lib == 'LED_D5.0mm':
-            plate.append(('circle', *P(1.27, 0), 5.1))
+        elif lib.startswith(('LED_D3.0mm', 'LED_D5.0mm')):  # LED centre = the Fab circle (PL9823 RGB parts differ from plain LEDs)
+            cs = fab_circles(f); x, y = T(*max(cs, key=lambda g: g[3])[1:3]) if cs else P(1.27, 0)
+            plate.append(('circle', x, y, 3.2 if lib.startswith('LED_D3') else 5.1))
         elif 'WQP419GR' in lib:  # sits on the jack body, use an M6 washer under the nut
             x, y = P(0, 6.48); plate.append(('circle', x, y, 8.0)); lab = (x, y + 8)
         elif 'EC11' in lib:
@@ -117,6 +116,16 @@ for entry in PLACE:
         if lab and f['val']:  # (x, y, rotation, text override, size)
             lab = (*lab, *(0, None, 2.5)[len(lab) - 2:])
             labels.append((lab[0], lab[1], lab[3] or label_text(f['val']), 'shelf' if ('NCJ6' in lib or 'NC3M' in lib or 'NJ' in lib) else 'plate', lab[2], lab[4]))
+
+# Fader level meters: columns of exactly 5 LEDs (the master's 2 x 10 meter is left alone), marked top to bottom
+cols = {}
+for p in parts:
+    if p['kind'] in ('led3', 'led5'): cols.setdefault((p['board'], round(p['cut'][1], 0)), []).append(p)
+for col in cols.values():
+    if len(col) != 5: continue
+    for p, mark in zip(sorted(col, key=lambda p: p['cut'][2]), ('PK', '+6', '0', '-10', '-20')):
+        p['mark'] = mark
+        labels.append((p['cut'][1] + (4.4 if p['kind'] == 'led3' else 5.4), p['cut'][2], mark, 'plate', 0, 1.8))  # right of the LED, clear of the fader cap
 
 # Controller: window over the ESP32 (BOOT/RESET reachable, printed lid), J1/J2 midline
 ex0, ey0 = 100, 100
@@ -187,10 +196,10 @@ def build(name, cuts, pts):
 
 PIECES, problems = {}, []
 # Printed top: tiles that fit the Ender 3 bed, joined by glued half-lap joints LAP mm either side of the shared edge.
-# Joint lines sit in hole-free bands (checked below): mono strips y 142, stereo y 193, master y 226, columns at x 191 / 342 (shelf 127.8 / 250).
+# Joint lines sit in hole-free bands (checked below): mono strips y 145.5, stereo y 189, master y 126, columns at x 191 / 342 (shelf 127.8 / 250).
 LAP = 3.5
-TILES = {'plate': {'rear_left': [(0, 0), (191, 0), (191, 226), (129.5, 226), (129.5, 193), (67.5, 193), (67.5, 142), (0, 142)],
-                   'front_left': [(0, 142), (67.5, 142), (67.5, 193), (129.5, 193), (129.5, 226), (191, 226), (191, 400), (0, 400)],
+TILES = {'plate': {'rear_left': [(0, 0), (191, 0), (191, 126), (129.5, 126), (129.5, 189), (67.5, 189), (67.5, 145.5), (0, 145.5)],
+                   'front_left': [(0, 145.5), (67.5, 145.5), (67.5, 189), (129.5, 189), (129.5, 126), (191, 126), (191, 400), (0, 400)],
                    'right': [(191, 0), (342, 0), (342, 400), (191, 400)],
                    'far_right': [(342, 0), (407, 0), (407, 400), (342, 400)]},
          'shelf': {'left': [(0, 0), (127.8, 0), (127.8, 200), (0, 200)], 'middle': [(127.8, 0), (250, 0), (250, 200), (127.8, 200)],

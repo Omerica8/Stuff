@@ -91,7 +91,8 @@ The case stays 407 × 353. The 62 mm freed by dropping 2 mic strips makes room f
 - **Risers** (case y, rear/front): mono 33.9/35.5 (x 0–67.5), stereo 39.4/41.4 (67.5–129.5), master left 69.5/71.5 (129.5–161), master right 51.9/53.9 (161–191), right region 178/180. They hang from the shelf on bosses between the jacks.
 - **Plate** is held by M3 F-F standoffs from each audio board's H1/H2 (10.5 mm) and from the controller's H1/H2 (7.5 mm), plus the pot nuts, 4 posts at y 185 (x 200, 270, 330, 385) and the armrest lip.
 - **Display** goes under the shelf over the digital board (window centre x 360, y 126).
-- **Printed tiles:** the plate splits at x 191 and x 342, with a stepped joint across the strips (mono y 142, stereo y 193, master y 226). The shelf splits at x 127.8 and 250.
+- **Fader level meters** (2026-10-27): every 5-LED column beside a fader (strips Ø3.2, controller PL9823 Ø5.1) is found from the boards and marked PK / +6 / 0 / -10 / -20 to its right. The fader scales moved to the left of the slots. The old PEAK LED holes are gone.
+- **Printed tiles:** the plate splits at x 191 and x 342, with a stepped joint across the strips (mono y 145.5, stereo y 189, master y 126, moved to clear the meter LEDs). The shelf splits at x 127.8 and 250.
 
 ## Printed case parts
 

@@ -227,10 +227,11 @@ for p in S['parts']:
         if CASE:  # printed scale beside the slot: 11 ticks, long ticks at the ends and at 0 dB (3/4 up)
             for i in range(11):
                 ty = y + travel / 2 - travel * i / 10; L = 4 if i in (0, 10) or (travel == 60 and i == 7) else 2.2
-                box(x + 4 + L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK); box(x - 4 - L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK)
+                box(x - 4 - L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK)
+                if p['board'] == 'mixer_master': box(x + 4 + L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK)  # others: level meter on the right
             if travel == 60:
                 for i, t in ((10, '+10'), (7, '0'), (4, '-10'), (2, '-30'), (0, 'oo')):
-                    text(t, x + 9.5, y + travel / 2 - travel * i / 10, Z_PLATE_TOP + 0.02, 1.8)
+                    text(t, x - 10.5, y + travel / 2 - travel * i / 10, Z_PLATE_TOP + 0.02, 1.8)
         cyl(x, fy, Z_PLATE_TOP, 1.2, 4, NICKEL, 12)
         if BODIES:
             box(x, y, zt, 9, travel + 15, 6.5, STEEL); box(x, fy, zt + 6.5, 1.2, 4, Z_PLATE_TOP + 4 - zt - 6.5, STEEL)
@@ -239,7 +240,10 @@ for p in S['parts']:
         box(x, y, Z_PLATE_TOP - 0.5, w, l, 5.5, CAPS['red'] if '48' in p['val'] else CAPS['grey'])
         if BODIES: box(x, y, zt, c[3] - 0.5, c[4] - 0.5, 11, WHITE)
     elif k in ('led3', 'led5'):
-        if k == 'led3' and p in meter:
+        if 'mark' in p:  # fader level meter: PK red, +6 yellow, the rest green; showing a healthy signal
+            col = {'PK': (1, 0.05, 0.02), '+6': (1, 0.75, 0.05)}.get(p['mark'], (0.1, 1, 0.15))
+            lit = p['mark'] in ('-20', '-10') or (p['mark'] == '0' and p['board'] != 'controller')
+        elif k == 'led3' and p in meter:
             i = meter.index(p) % 10; col = (0.1, 1, 0.15) if i < 6 else (1, 0.75, 0.05) if i < 8 else (1, 0.05, 0.02)
             lit = i < 5
         else:
