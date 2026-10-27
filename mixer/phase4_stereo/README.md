@@ -18,7 +18,7 @@ Same width (30 mm) and height (343 mm) as the mono strip, with the same J2 power
 | AUX (pre-fader, mono L+R) | A10K 9 mm |
 | FX (post-fader, mono L+R) | A10K 9 mm |
 | BAL (balance) | B10K 9 mm centre detent (same as mono strip PAN) |
-| PEAK LED | red LED |
+| Fader meter | 5 LEDs beside the fader: −20, −10, 0, +6, PEAK (louder of L/R), added 2026-10-27 |
 | Fader | **dual-gang** 60 mm A10K, Bourns PTA6044-2015DPA103 (same as master) |
 
 ## Circuit (per side L and R unless noted)
@@ -29,4 +29,5 @@ Same width (30 mm) and height (343 mm) as the mono strip, with the same J2 power
 - **FX (post):** BUF_L + BUF_R averaged (10k/10k into a buffer) → FX pot → 10 kΩ → FX bus.
 - **BAL:** BUF_L → 10k → node BL; BUF_R → 10k → node BR; BAL pot between BL and BR, wiper GND; BL → 10k → MAIN_L, BR → 10k → MAIN_R. (Same network and centre level as the mono strip pan, so the master's 39k summing gives the same unity point.)
 - **PEAK:** two LM393s, ±8.2 V window on EQ_L and on EQ_R, all four outputs wired-OR to one LED (4.7k from +12), same values as the mono strip.
+- **Fader meter:** same as the mono strip, but U7 (TL072) has two ideal-diode halves, EQ_L → D2 and EQ_R → D3, both 1N4148 cathodes into MTRK, so the hold cap follows the louder side. R40 220 Ω, C21 1 µF, R41 1 MΩ; ladder R42–R46 (18k, 3.6k, 2.4k, 750, 360); U8 LM339; LEDs D4 −20, D5 −10, D6 0 green, D7 +6 yellow with R47–R50 4.7k; PEAK LED D1 on top. C22 100n at U8, C23/C24 at U7.
 - **Power / bus:** J2 and J3 identical to the mono strip. 10 Ω + 47 µF per rail, 100 nF per IC.

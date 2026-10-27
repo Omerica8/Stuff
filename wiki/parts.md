@@ -21,7 +21,8 @@ ESP32-S3 N16R8 DevKitC-style clone (2 USB-C), 2.8" ILI9341 240×320 SPI TFT with
 | Part | Use |
 |---|---|
 | THAT1512 (genuine, Mouser/DigiKey) | Mic preamp, one per mono strip |
-| NE5532, TL072, NJM4556AD, LM393 | Op-amps, phones driver, peak detector |
+| NE5532, TL072, NJM4556AD, LM393, LM339 | Op-amps, phones driver, peak detector, fader meters |
+| PL9823-F5 (5 mm addressable RGB) ×20, 74HCT125 | Controller fader meters (check the pinout of the LEDs you buy) |
 | DRV134PA | Balanced main outs |
 | Bourns PTA6043-2015DPA103 | 60 mm A10K mono strip fader |
 | Bourns PTA6044-2015DPA103 | 60 mm dual A10K, master and stereo strips |

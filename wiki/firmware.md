@@ -22,6 +22,9 @@ Arduino IDE 2 + ESP32 core, **Tools > USB Mode: USB-OTG (TinyUSB)**. Each step i
 | LED | 6 |
 | DIN MIDI RX / TX (Serial0, 31250 baud) | 44 / 43 |
 | Reserved: USB D−/D+ | 19 / 20 |
+| Fader meter RGB LEDs (20x PL9823, via 74HCT125) | 48 |
+
+GPIO48 also drives the devkit's onboard RGB LED, which mirrors pixel 1. Keep LED brightness low (20 pixels at full white ≈ 1.2 A from USB). PL9823 takes RGB order, not GRB.
 
 The draft full-core map (plan v2) also has TFT CLK 16, MOSI 17, DC 18 (CS1 to GND, RES to RST, BLK to 3V3, no touch), buttons 0, 3, 45, 46, 9 (strapping pins used as inputs only), LEDs 6, 7, 8, 10. Don't lock the pinout until the exact board and TFT labels are confirmed.
 
