@@ -19,7 +19,7 @@ One strip = one mic/line channel, like a Yamaha MG10XU mono channel. Two identic
 | AUX | monitor send, **pre-fader** | A10K pot |
 | FX | reverb send, **post-fader** | A10K pot |
 | PAN | left/right | B10K pot, centre detent |
-| PEAK LED | lights about 4 dB before clipping | red LED |
+| Fader meter | 5 LEDs beside the fader: −20, −10, 0, +6 (green ×3, yellow), PEAK on top | 3 mm LEDs, TL072 + LM339 (added 2026-10-27) |
 | Fader | channel level | **Bourns PTA6043, 60 mm travel, A10K (audio taper)**, new part (Omer chose bigger faders 2026-10-26) |
 
 ## Signal path
@@ -30,7 +30,8 @@ P48 ─ 48V sw ─ 6.81k (×2) ─────┘                               
  ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
  └─► 80 Hz HPF (U2A, switch bypass) ─► MID cell (U3A + gyrator U3B) ─► HIGH/LOW stage (U2B, inverting) ─► EQ_OUT
 EQ_OUT ─► AUX pot ─ 10k ─► AUX bus                                            (pre-fader)
-EQ_OUT ─► PEAK detector (LM393 window ±8 V) ─► LED
+EQ_OUT ─► PEAK detector (LM393 window ±8 V) ─► LED (top of the fader meter)
+EQ_OUT ─► peak detector U6A ─► LM339 ladder ─► 4 meter LEDs (pre-fader)
 EQ_OUT ─► 60 mm A10K fader ─► U4A buffer ×2.5 (+8 dB) ─► BUF
 BUF ─► FX pot ─ 10k ─► FX bus                                                 (post-fader)
 BUF ─ 10k ─► PAN_L ┐  pan pot between PAN_L and PAN_R, wiper to GND
@@ -69,6 +70,12 @@ Buses are "virtual earth": the master board's summing amps hold them at 0 V and 
 
 **PEAK, U5 LM393:** supply +12 / −12 (GND pin to −12). Refs: R30 4.7k/R31 10k from +12 to GND gives +8.2 V; R32 4.7k/R33 10k from −12 gives −8.2 V. U5A: +IN = +8.2 V, −IN = EQ_OUT. U5B: +IN = EQ_OUT, −IN = −8.2 V. Outputs tied together → LED D5 cathode; D5 anode → R34 4.7 kΩ → +12. (No hold circuit: short peaks give a short flash. A hold can be added later.)
 
+**Fader meter (added 2026-10-27), pre-fader, like the MG10XU's channel meters:**
+- Peak detector U6A (TL072, not the spare NE5532 half: the NE5532's input clamp diodes would dump the hold cap into EQ_OUT): +IN = EQ_OUT, output → D6 1N4148 → node MTRK, which is also −IN (ideal diode). MTRK → R38 220 Ω → MTR; C27 1 µF film and R39 1 MΩ from MTR to GND (≈1 s fall). U6B unused (follower to GND). Positive half-cycles only, which is fine for a meter.
+- Ladder from +12: R40 18k → REF4 → R41 3.6k → REF3 → R42 2.4k → REF2 → R43 750 → REF1 → R44 360 → GND gives 3.40 / 1.68 / 0.53 / 0.17 V = sine peaks at +9.8 / +3.7 / −6.3 / −16.1 dBu, marked **+6, 0, −10, −20** (0 = +4 dBu, the same 0 as the master meter).
+- U7 LM339 (+12 / GND; MTR never goes below 0 V): comparator n has +IN = REFn, −IN = MTR, open-collector out → LED cathode; anode → 4.7 kΩ (R45–R48) → +12, about 2 mA like PEAK. D7 −20, D8 −10, D9 0 green, D10 +6 yellow. The existing red PEAK LED D5 sits on top of the column.
+- 100 nF per rail at U6 and U7 (C28–C30). No comparator hysteresis: the hold cap keeps the LEDs steady enough.
+
 **Power:** J2 2×5 IDC, same pinout as the power board (1–2 +12, 3–6 and 10 GND, 7–8 −12, 9 P48). Each rail: 10 Ω + 47 µF filter at the header; 100 nF at every op-amp.
 **Bus:** J3 2×5 IDC: 1 MAIN_L, 2 GND, 3 MAIN_R, 4 GND, 5 AUX, 6 GND, 7 FX, 8 GND, 9 NC, 10 GND.
 
@@ -88,7 +95,7 @@ Pan law −2.5 dB at centre with full separation at the ends. The A10K fader rea
 
 ## Parts per strip
 
-1 THAT1512, 3 NE5532, 1 LM393, 1 combo jack, 3 switches (48V, PAD, 80Hz), 7 pots (1 C10K gain; 4 B10K centre-detent for HIGH, MID, LOW, PAN; 2 A10K for AUX, FX), 1 fader (PTA6043 60 mm A10K, new), 4 1N4004, 1 LED, 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
+1 THAT1512, 3 NE5532, 1 LM393, 1 TL072, 1 LM339, 1 combo jack, 3 switches (48V, PAD, 80Hz), 7 pots (1 C10K gain; 4 B10K centre-detent for HIGH, MID, LOW, PAN; 2 A10K for AUX, FX), 1 fader (PTA6043 60 mm A10K, new), 4 1N4004, 1 1N4148, 5 LEDs (3 green, 1 yellow, 1 red), 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
 
 ## Phase 2 test rig (breadboard, no master board yet)
 
