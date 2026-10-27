@@ -20,7 +20,7 @@ One strip = one mic/line channel, like a Yamaha MG10XU mono channel. Four identi
 | FX | reverb send, **post-fader** | A10K pot |
 | PAN | left/right | B10K pot, centre detent |
 | PEAK LED | lights about 4 dB before clipping | red LED |
-| Fader | channel level | **your B10K fader** |
+| Fader | channel level | **Bourns PTA6043, 60 mm travel, A10K (audio taper)**, new part (Omer chose bigger faders 2026-10-26) |
 
 ## Signal path
 
@@ -31,7 +31,7 @@ P48 ─ 48V sw ─ 6.81k (×2) ─────┘                               
  └─► 80 Hz HPF (U2A, switch bypass) ─► MID cell (U3A + gyrator U3B) ─► HIGH/LOW stage (U2B, inverting) ─► EQ_OUT
 EQ_OUT ─► AUX pot ─ 10k ─► AUX bus                                            (pre-fader)
 EQ_OUT ─► PEAK detector (LM393 window ±8 V) ─► LED
-EQ_OUT ─► fader (2.2k law resistor wiper→GND) ─► U4A buffer ×2.5 (+8 dB) ─► BUF
+EQ_OUT ─► 60 mm A10K fader ─► U4A buffer ×2.5 (+8 dB) ─► BUF
 BUF ─► FX pot ─ 10k ─► FX bus                                                 (post-fader)
 BUF ─ 10k ─► PAN_L ┐  pan pot between PAN_L and PAN_R, wiper to GND
 BUF ─ 10k ─► PAN_R ┘  PAN_L ─ 10k ─► MAIN L bus,  PAN_R ─ 10k ─► MAIN R bus
@@ -62,7 +62,7 @@ Buses are "virtual earth": the master board's summing amps hold them at 0 V and 
 
 **Sends, fader, pan**
 - AUX: RV5 A10K, top EQ_OUT, bottom GND, wiper → R21 10 kΩ → AUX bus.
-- Fader RV6 (B10K slide): top EQ_OUT, bottom GND, wiper → R22 2.2 kΩ to GND and → U4A +IN. U4A gain 2.5: R23 15 kΩ out→−IN, R24 10 kΩ −IN→GND. Output BUF.
+- Fader RV6 (Bourns PTA6043 60 mm, A10K audio taper): top EQ_OUT, bottom GND, wiper → U4A +IN. (No law resistor needed; R22 removed.) U4A gain 2.5: R23 15 kΩ out→−IN, R24 10 kΩ −IN→GND. Output BUF.
 - FX: RV7 A10K, top BUF, bottom GND, wiper → R25 10 kΩ → FX bus.
 - PAN: R26 10 kΩ BUF→PAN_L, R27 10 kΩ BUF→PAN_R, RV8 B10K ends PAN_L/PAN_R, wiper GND. R28 10 kΩ PAN_L→MAIN_L, R29 10 kΩ PAN_R→MAIN_R.
 - U4B unused: +IN to GND, output to −IN.
@@ -84,11 +84,11 @@ Buses are "virtual earth": the master board's summing amps hold them at 0 V and 
 | MID | +14.5 dB @ 2.5 kHz (−6 dB points 1.7–3.8 kHz) | mirror | 0.0 dB |
 | LOW | +14.7 dB @ 100 Hz, +15.3 @ 50 Hz | mirror | 0.0 dB |
 
-Pan law −2.5 dB at centre with full separation at the ends. The fader with its 2.2 kΩ law resistor reads about −13 dB at half travel and −4 dB at 90 %.
+Pan law −2.5 dB at centre with full separation at the ends. The A10K fader reads about −20 dB at half travel and −10 dB at ¾ travel (typical audio taper), so unity sits a little above ¾ travel.
 
 ## Parts per strip
 
-1 THAT1512, 3 NE5532, 1 LM393, 1 combo jack, 3 switches (48V, PAD, 80Hz), 7 pots (1 C10K gain; 4 B10K centre-detent for HIGH, MID, LOW, PAN; 2 A10K for AUX, FX), 1 fader (owned), 4 1N4004, 1 LED, 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
+1 THAT1512, 3 NE5532, 1 LM393, 1 combo jack, 3 switches (48V, PAD, 80Hz), 7 pots (1 C10K gain; 4 B10K centre-detent for HIGH, MID, LOW, PAN; 2 A10K for AUX, FX), 1 fader (PTA6043 60 mm A10K, new), 4 1N4004, 1 LED, 2× 6.81k 0.1 %, film caps (2× 100n, 47n, 22n, 8.2n, 1µF), 2× 47µF 63V, 22µF NP, ~35 resistors, 2 IDC headers, IC sockets.
 
 ## Phase 2 test rig (breadboard, no master board yet)
 
