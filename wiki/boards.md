@@ -11,7 +11,7 @@ Every mixer board is 2-layer, through-hole where possible, ERC/DRC clean, and **
 | Digital | [phase3b_digital](../mixer/phase3b_digital/README.md) | 100 × 75 | 1 | Hub module + PCM2902 module on labelled pads, 6N138 MIDI IN, MIDI OUT, USB-C power-only input. |
 | Stereo strip | [phase4_stereo](../mixer/phase4_stereo/README.md) | 30 × 343 | 2 | Line build: fit J8–J10, JP1/JP2 open. USB-return build: omit J8–J10, fit JP1/JP2. Dual HIGH/LOW pots have no detent. |
 | Reverb carrier | [phase5_reverb](../mixer/phase5_reverb/README.md) | 74 × 50 | 1 | Akizuki AE-FV-1-DIP module, 3-way DIP program select, ROM jumper, trims. |
-| MIDI hub | [phase6_midi](../mixer/phase6_midi/README.md) | 200 × 64 | 1 | Raspberry Pi Pico in sockets on hub USB3 (micro-USB cable). 5× 6N138 DIN IN, 3 DIN OUT (OUT 3 = THRU option), USB-A host via PIO-USB with 500 mA polyfuse. |
+| MIDI hub | [phase6_midi](../mixer/phase6_midi/README.md) | 200 × 64 | 1 | Raspberry Pi Pico in sockets on hub USB3 (micro-USB cable). 5× 6N138 DIN IN, 3 DIN OUT (OUT 3 = THRU option), USB-A host via PIO-USB with 500 mA polyfuse. ERC 0, DRC 0; outputs in pcb/. |
 | MIDI controller | [controller/](../controller/) | — | 1 | Earlier standalone board: schematic, gerbers, BOM (incl. PCBWay), assembly guide HTML. |
 
 ## Inter-board connectors

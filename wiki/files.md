@@ -53,4 +53,7 @@
 | [mixer/phase5_reverb/README.md](../mixer/phase5_reverb/README.md) | Phase 5: FV-1 reverb carrier |
 | [mixer/phase5_reverb/pcb/PARTS.md](../mixer/phase5_reverb/pcb/PARTS.md) | Phase 5 reverb carrier: exact parts |
 | [mixer/phase5_reverb/pcb/mixer_reverb_bom.csv](../mixer/phase5_reverb/pcb/mixer_reverb_bom.csv) |  |
+| [mixer/phase6_midi/README.md](../mixer/phase6_midi/README.md) | Phase 6: MIDI hub board (design v1) |
+| [mixer/phase6_midi/pcb/PARTS.md](../mixer/phase6_midi/pcb/PARTS.md) | Phase 6 MIDI hub: exact parts |
+| [mixer/phase6_midi/pcb/mixer_midi_bom.csv](../mixer/phase6_midi/pcb/mixer_midi_bom.csv) |  |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |
