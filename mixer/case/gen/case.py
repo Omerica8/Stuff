@@ -10,7 +10,7 @@ FX = json.load(open(os.path.join(HERE, 'panel_fixings.json')))
 B = json.load(open(os.path.join(HERE, 'boards.json')))
 
 W, D, WALL, FLOOR = 407.0, 353.0, 3.0, 3.0
-Z_PLATE, Z_PLATE_TOP, Z_SHELF = 33.1, 35.1, 46.6   # plate underside/top, shelf underside
+Z_PLATE, Z_PLATE_TOP, Z_SHELF = 33.1, 35.6, 46.6   # printed plate (2.5 mm) underside/top, shelf underside
 Z_ARM = 37.0                                       # armrest underside (ribbon plugs reach ~35.6)
 INSERT_D, INSERT_DEPTH, PILOT_D = 4.2, 6.0, 2.5    # M3 heat-set insert hole; M3 self-tapper pilot
 

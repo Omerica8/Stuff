@@ -1,4 +1,4 @@
-# Builds the two aluminium top pieces from boards.json (made by dump_boards.py with KiCad's python).
+# Builds the two top pieces (control plate, jack shelf) from boards.json (made by dump_boards.py with KiCad's python): DXF, PDFs, tiles.
 # Run: uv run --no-project --with ezdxf --with reportlab python panels.py
 # Case coordinates in mm: x from the left outer face, y from the rear outer face (toward the player), as in STATUS.md.
 import json, math, os
@@ -133,7 +133,7 @@ labels.append((TFT[0], TFT[1] + 28, 'DISPLAY', 'shelf'))
 # Fixing holes (M3). Plate: posts in the right region (the boards hold the rest through their standoffs, the armrest
 # lip clamps the front edge). Shelf: M3 self-tappers into printed bosses on the rear wall, side walls and risers.
 # Keep in step with case.py (PLATE_POSTS, SHELF_BOSSES).
-PLATE_POSTS = [(258, 185), (300, 185), (402.5, 185)]
+PLATE_POSTS = [(262, 185), (300, 185), (402.5, 185)]  # 262 keeps clear of the lap joint at x 253
 SHELF_BOSSES = [(4.5, 4.5), (98.5, 4.5), (222, 4.5), (300, 4.5), (402.5, 4.5), (4.5, 20), (402.5, 90),
                 (36.5, 31.4), (67.5, 31.4), (98.5, 31.4), (160.5, 36.9), (197, 67), (231.7, 49.4), (300, 175.5), (380, 175.5)]
 plate += [('circle', x, y, 3.4) for x, y in PLATE_POSTS]
@@ -185,9 +185,38 @@ def build(name, cuts, pts):
     return list(poly.exterior.coords)[:-1], cuts, bad
 
 PIECES, problems = {}, []
-for n, cuts, shelf_piece, desc in (('plate', plate, False, '2.0 mm aluminium control plate'), ('shelf', shelf, True, '1.5 mm aluminium jack shelf')):
+# Printed top: tiles that fit the Ender 3 bed, joined by glued half-lap joints LAP mm either side of the shared edge.
+# Joint lines sit in hole-free bands (checked below): mono strips y 142, stereo y 193, master y 226, columns at x 191.5 / 253 (shelf 190 / 254).
+LAP = 3.5
+TILES = {'plate': {'rear_left': [(0, 0), (191.5, 0), (191.5, 193), (129.5, 193), (129.5, 142), (0, 142)],
+                   'front_left': [(0, 142), (129.5, 142), (129.5, 193), (191.5, 193), (191.5, 400), (0, 400)],
+                   'rear_master': [(191.5, 0), (253, 0), (253, 226), (191.5, 226)],
+                   'front_master': [(191.5, 226), (253, 226), (253, 400), (191.5, 400)],
+                   'right': [(253, 0), (407, 0), (407, 400), (253, 400)]},
+         'shelf': {'left': [(0, 0), (190, 0), (190, 200), (0, 200)], 'middle': [(190, 0), (254, 0), (254, 53.9), (190, 53.9)],
+                   'right': [(254, 0), (407, 0), (407, 200), (253, 200), (253, 53.9), (254, 53.9)]}}
+def joints(n, poly):
+    """Shared tile edges inside the piece, as (tile a, tile b, [(x0, y0), (x1, y1)]) segments."""
+    out, names, P = [], list(TILES[n]), Polygon(poly).buffer(-0.05)  # interior only: a tile edge along the outline isn't a joint
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            e = Polygon(TILES[n][a]).boundary.intersection(Polygon(TILES[n][b]).boundary).intersection(P)
+            for g in getattr(e, 'geoms', [e]):
+                if g.geom_type == 'LineString' and g.length > 1:
+                    cs = list(g.coords)
+                    out += [(a, b, [cs[k], cs[k + 1]]) for k in range(len(cs) - 1)]
+    return out
+for n, cuts, shelf_piece, desc in (('plate', plate, False, 'Control plate (printed, 2.5 mm, dashed = glued tile joints)'), ('shelf', shelf, True, 'Jack shelf (printed, 3 mm, dashed = glued tile joints)')):
     poly, holes, bad = build(n, cuts, outline(shelf_piece))
     PIECES[n] = (holes, poly, desc); problems += bad
+    for a, b, seg in joints(n, poly):  # every hole keeps MIN_WEB of plastic outside the lap zone
+        from shapely.geometry import LineString
+        for c in holes:
+            if geom(c).distance(LineString(seg)) < LAP + MIN_WEB:
+                problems.append(f'{n}: hole at ({c[1]:.1f},{c[2]:.1f}) is too close to the {a}/{b} joint')
+    for t, tp in TILES[n].items():  # Ender 3: 220 x 220 bed, keep 5 mm spare
+        x0, y0, x1, y1 = Polygon(tp).intersection(Polygon(poly)).buffer(-0.01).bounds  # drop zero-width slivers on shared edges
+        if max(x1 - x0, y1 - y0) + 2 * LAP > 215: problems.append(f'{n} tile {t} is {x1 - x0:.0f} x {y1 - y0:.0f} mm, too big for the bed')
 
 # ---- DXF (y flipped so the drawing reads as seen from above, player at the bottom) ----
 def write_dxf(n, cuts, poly):
@@ -226,6 +255,10 @@ def draw_piece(cv, n, cuts, poly, ox, oy, s, labels_on=True):
             x0, y0, x1, y1 = extent(c); cv.rect(X(x0), Y(y1), (x1 - x0) * s, (y1 - y0) * s)
         else:
             cv.roundRect(X(c[1] - c[3] / 2), Y(c[2] + c[4] / 2), c[3] * s, c[4] * s, c[3] / 2 * s)
+    cv.setDash(3, 2); cv.setLineWidth(0.6)
+    for a, b, ((x0, y0), (x1, y1)) in joints(n, poly):  # glue joints between printed tiles
+        cv.line(X(x0), Y(y0), X(x1), Y(y1))
+    cv.setDash(); cv.setLineWidth(0.35)
     if labels_on:
         cv.setFont('Helvetica', max(2.2 * s, 4))
         for x, y, t, pc in labels:
@@ -273,7 +306,8 @@ def tiled():
                 cv.showPage()
     cv.save()
 
-json.dump(dict(pieces={n: dict(outline=poly, holes=c) for n, (c, poly, _) in PIECES.items()}, parts=parts, labels=labels,
+json.dump(dict(pieces={n: dict(outline=poly, holes=c, tiles=TILES[n], joints=joints(n, poly)) for n, (c, poly, _) in PIECES.items()},
+               lap=LAP, parts=parts, labels=labels,
                tft=TFT, esp_window=[esp_x, 294, 30, 56]), open(os.path.join(HERE, 'render_scene.json'), 'w'))
 for n, (cuts, poly, _) in PIECES.items():
     write_dxf(n, cuts, poly)

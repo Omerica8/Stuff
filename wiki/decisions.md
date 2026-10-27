@@ -23,6 +23,7 @@ Newest last. "Why" is given where it was recorded.
 | 2026-10-27 | Take part sizes from datasheets, not Omer's measurements; verify with a 1:1 paper print | Omer's instruction |
 | 2026-10-27 | Case CAD in Python (build123d + ezdxf via uv), generated from the KiCad boards, instead of OpenSCAD | Nothing to install on the PC, and one re-run follows any board change |
 | 2026-10-27 | Display under the raised shelf (meter-bridge style); risers hang from the shelf | Free space over the digital board; risers can't stand on the plate behind the mono combo jacks |
+| 2026-10-27 | Top is 3D-printed instead of aluminium: 2.5 mm plate with nut recesses, 3 mm shelf with thin-web recesses at the 1/4" jacks, tiles joined by half-lap joints | Saves about $105; a printed part can have local recesses and built-in spacers |
 
 ## Still open
 

@@ -2,3 +2,4 @@
 *.stl binary
 *.blend binary
 *.png binary
+*.glb binary
