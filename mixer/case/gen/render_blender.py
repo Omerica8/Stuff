@@ -43,7 +43,7 @@ NICKEL = mat('nickel', (0.75, 0.75, 0.73), 1.0, 0.2)
 STEEL = mat('steel', (0.55, 0.56, 0.58), 1.0, 0.35)
 HOLE = mat('hole', (0.0, 0.0, 0.0), 0.0, 1.0)
 WHITE = mat('print white', (0.9, 0.9, 0.9), 0.0, 0.6)
-INK = mat('print ink', (0.02, 0.02, 0.025), 0.0, 0.5)
+INK = mat('print ink', (0.005, 0.005, 0.008), 0.0, 0.7)
 POTBLUE = mat('pot body', (0.05, 0.08, 0.25), 0.3, 0.4)
 RIBBON = mat('ribbon grey', (0.45, 0.46, 0.48), 0.0, 0.6)
 STRIPE = mat('ribbon stripe', (0.6, 0.02, 0.02), 0.0, 0.6)
@@ -78,6 +78,16 @@ def strip(a, b, width, thick, m):
     return link(o, m)
 
 STL = os.path.join(HERE, '..', 'stl')
+W, Z_ARM_TOP = 407.0, 40.0
+
+def text(body, x, y, z, size, rot=0, wall='top', m=INK):
+    """Flat printed text: on the deck (rot = degrees, 90 reads upward), or on the outside of the rear or right wall."""
+    cu = bpy.data.curves.new(body, 'FONT'); cu.body = body; cu.size = size * MM; cu.align_x = 'CENTER'; cu.align_y = 'CENTER'
+    o = bpy.data.objects.new(body, cu); scene.collection.objects.link(o)
+    if wall == 'top': o.location = P(x, y, z); o.rotation_euler = (0, 0, math.radians(rot))
+    elif wall == 'rear': o.location = (x * MM, D * MM + 0.0002, z * MM); o.rotation_euler = (math.radians(90), 0, math.radians(180))
+    else: o.location = (x * MM + 0.0002, (D - y) * MM, z * MM); o.rotation_euler = (math.radians(90), 0, math.radians(90))
+    return link(o, m)
 if CASE:
     # ---------------- printed case and printed top ----------------
     for f in sorted(os.listdir(STL)):
@@ -92,12 +102,23 @@ if CASE:
             spread = {'tray': 18, 'top_plate': 18, 'top_shelf': 18}.get(next((k for k in ('tray', 'top_plate', 'top_shelf') if n.startswith(k)), ''), 0)
             lift = {'tray': 0, 'riser': 150, 'armrest': 60, 'esp32': 215, 'top_plate': 195, 'top_shelf': 255}[next(k for k in ('tray', 'riser', 'armrest', 'esp32', 'top_plate', 'top_shelf') if n.startswith(k))]
             o.location = Vector(((c.x - 0.2035) * spread / 100, (c.y - 0.1765) * spread / 100 - (0.07 if n.startswith('armrest') else 0), lift * MM))
-    for x, y, text, piece in ([] if DETAIL else S['labels']):  # printed overlay labels (sticker or paint pen)
-        cu = bpy.data.curves.new(text, 'FONT'); cu.body = text; cu.size = 2.4 * MM; cu.align_x = 'CENTER'; cu.align_y = 'CENTER'
-        o = bpy.data.objects.new(text, cu); scene.collection.objects.link(o)
-        o.location = P(x, y + 1.5, (Z_PLATE_TOP if piece == 'plate' else Z_SHELF_TOP) + 0.02); link(o, INK)
+    for x, y, t, piece, rot, sz in S['labels']:  # printed overlay labels (sticker sheet or paint pen)
+        text(t, x, y, (Z_PLATE_TOP if piece == 'plate' else Z_SHELF_TOP) + 0.08, sz, rot)
+    # wall markings under each connector opening (same heights as case.py), and the DC input on the right wall
+    for e in BOARDS:
+        if e[0] not in ('mixer_midi', 'mixer_digital'): continue
+        for f in B[e[0]]['fps']:
+            if not f['lib'].startswith(('DIN-5', 'USB')) or f['ref'] == 'J13': continue
+            x0, y0, x1, y1 = footprint_box(e, f)
+            h = 18 if f['lib'].startswith('DIN-5') else 12.5 if 'USB_B' in f['lib'] else 7.5 if 'USB_A' in f['lib'] else 5
+            zc = e[4] + 1.6 + (10 if f['lib'].startswith('DIN-5') else 5.6 if 'USB_B' in f['lib'] else 3.5 if 'USB_A' in f['lib'] else 1.7)
+            t = f['val'].upper().replace('USB TO PC', 'USB TO PC').replace('USB-C 5V IN', 'USB-C 5V')
+            if e[3] == 0: text(t, (x0 + x1) / 2, 0, zc - h / 2 - 2.6, 2.2, wall='rear', m=WHITE)
+            else: text(t, W - 0, (y0 + y1) / 2, zc - h / 2 - 2.6, 2.2, wall='right', m=WHITE)
+    text('15V AC IN', W, 60, 22.5, 2.2, wall='right', m=WHITE)
+    text('ANALOG MIXER  +  MIDI', 60, 341, Z_ARM_TOP + 0.02, 5.0, m=WHITE)
 before_boards = set(bpy.data.objects)
-if not CASE or DETAIL:
+if True:  # boards always: with the case they fill the rear and side openings
     # ---------------- boards with their KiCad 3D models ----------------
     for e in BOARDS:
         name, bx, by, rot, zb = e
@@ -127,6 +148,11 @@ if not CASE or DETAIL:
             if f['lib'].startswith('DIN-5'):
                 x0, y0, x1, y1 = footprint_box(e, f)
                 box((x0 + x1) / 2, (y0 + y1) / 2, e[4] + 1.6, x1 - x0, y1 - y0, 20.5, BLACK)
+                zc = e[4] + 1.6 + 10  # socket face: metal shell ring and the dark 5-pin insert, facing out of the wall
+                for d, m, dz in ((15.5, NICKEL, 0.0), (13, HOLE, 0.3)):
+                    c = cyl(*(((x0 + x1) / 2, y0 - 0.5) if e[3] == 0 else (x1 + 0.5, (y0 + y1) / 2)), zc - 0.5, d, 1 + dz, m, 32)
+                    c.rotation_euler = (math.radians(90), 0, 0) if e[3] == 0 else (0, math.radians(90), 0)
+                    c.location = P(*(((x0 + x1) / 2, y0 - 0.5 - dz) if e[3] == 0 else (x1 + 0.5 + dz, (y0 + y1) / 2)), zc)
     for f in B['mixer_midi']['fps']:
         if f['ref'] == 'J10':  # Raspberry Pi Pico in its two 1x20 sockets (J10/J11)
             x0, y0, x1, y1 = footprint_box(entry['mixer_midi'], f)
@@ -182,6 +208,12 @@ for p in S['parts']:
     zt = ZT.get(p['board'], 22.6)
     if k in ('pot', 'pot_dual'):
         knob(x, y, 15 if k == 'pot' else 17, 16, cap_colour(p['val']))
+        if CASE:  # printed scale: 11 ticks over 300 degrees, 0 at 7 o'clock, centre tick longer
+            r0 = 9.2 if k == 'pot' else 10.2
+            for i in range(11):
+                a = math.radians(-150 + 30 * i); L = 1.8 if i in (0, 5, 10) else 1.1
+                t = box(x + (r0 + L / 2) * math.sin(a), y - (r0 + L / 2) * math.cos(a), Z_PLATE_TOP, 0.45, L, 0.03, INK)
+                t.rotation_euler = (0, 0, -a)
         if BODIES:
             box(x, y, zt, 9.8, 11, 10, POTBLUE); cyl(x, y, zt + 10, 7, 5, NICKEL, 24); cyl(x, y, zt + 15, 6, Z_PLATE_TOP + 1 - zt - 15, STEEL, 24)
     elif k == 'encoder':
@@ -192,6 +224,13 @@ for p in S['parts']:
         travel = c[4] - 5
         fy = y - travel * 0.25                                            # three quarters up
         box(x, fy, Z_PLATE_TOP + 4, 12, 20, 9, BLACK); box(x, fy, Z_PLATE_TOP + 13, 12.2, 1.2, 0.2, WHITE)
+        if CASE:  # printed scale beside the slot: 11 ticks, long ticks at the ends and at 0 dB (3/4 up)
+            for i in range(11):
+                ty = y + travel / 2 - travel * i / 10; L = 4 if i in (0, 10) or (travel == 60 and i == 7) else 2.2
+                box(x + 4 + L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK); box(x - 4 - L / 2, ty, Z_PLATE_TOP, L, 0.45, 0.03, INK)
+            if travel == 60:
+                for i, t in ((10, '+10'), (7, '0'), (4, '-10'), (2, '-30'), (0, 'oo')):
+                    text(t, x + 9.5, y + travel / 2 - travel * i / 10, Z_PLATE_TOP + 0.02, 1.8)
         cyl(x, fy, Z_PLATE_TOP, 1.2, 4, NICKEL, 12)
         if BODIES:
             box(x, y, zt, 9, travel + 15, 6.5, STEEL); box(x, fy, zt + 6.5, 1.2, 4, Z_PLATE_TOP + 4 - zt - 6.5, STEEL)
@@ -291,6 +330,14 @@ only = os.environ.get('ONLY')
 scene.view_settings.view_transform = 'AgX'
 tag = '' if CASE else 'boards_'
 shots = ((hero, f'render_{tag}hero.png'), (top, f'render_{tag}top.png'))
+def closeup(name, loc, aim, lens):
+    t = bpy.data.objects.new(name + ' aim', None); t.location = aim; scene.collection.objects.link(t)
+    o = camera(name, loc, lens=lens); o.constraints[0].target = t
+    return o
+if CASE and not DETAIL:  # label-legible close-ups of the tilted deck and the rear
+    shots += ((closeup('strips', (0.03, -0.10, 0.27), (0.075, 0.15, 0.07), 52), 'render_detail_strips.png'),
+              (closeup('master', (0.27, -0.11, 0.27), (0.25, 0.12, 0.07), 48), 'render_detail_master.png'),
+              (closeup('rear', (0.5, 0.66, 0.15), (0.3, 0.355, 0.07), 40), 'render_detail_rear.png'))
 if DETAIL:
     target.location = (0.2035, 0.17, 0.13 if EXPLODE else 0.02)
     shots = ((camera('exploded', (-0.38, -0.62, 0.62), lens=33), 'render_case_exploded.png'),) if EXPLODE else             ((camera('front', (-0.15, -0.5, 0.38), lens=40), 'render_case_front.png'), (camera('rear', (0.72, 0.82, 0.32), lens=40), 'render_case_rear.png'))

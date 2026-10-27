@@ -57,8 +57,11 @@ def label_text(v):
             v = v[len(p):]
     return v.strip()
 
+# channel names printed under each fader: mono 1, 2; stereo 3/4, 5/6; master MAIN; controller MIDI 1-4
+CHANNEL = iter(['1', '2', '3/4', '5/6', 'MAIN'])
 for entry in PLACE:
     name = entry[0]
+    chan = next(CHANNEL) if name != 'controller' else None
     T = lambda x, y, e=entry: to_case(e, x, y)
     for f in B[name]['fps']:
         lib, px, py = f['lib'], f['x'], f['y']
@@ -66,17 +69,17 @@ for entry in PLACE:
         lab = None; n0p, n0s = len(plate), len(shelf)
         if 'RD90' in lib:  # 9 mm pots: the Fab circle is the shaft
             c = max(fab_circles(f), key=lambda g: g[3]); x, y = T(c[1], c[2])
-            plate.append(('circle', x, y, 7.5)); lab = (x, y + 8)
+            plate.append(('circle', x, y, 7.5)); lab = (x - (14.2 if 'RD902' in lib else 13.2), y, 90)  # beside the knob and its scale, reading upward
         elif 'PTA6043' in lib or 'Fader_45mm' in lib:  # screw holes = the two Fab circles
             c1, c2 = sorted(fab_circles(f), key=lambda g: g[2])[:2]
             (x1, y1), (x2, y2) = T(c1[1], c1[2]), T(c2[1], c2[2])
             travel = 60 if 'PTA60' in lib else 30  # controller "45 mm" fader = 45 mm body, 30 mm travel (PTA3043 outline)
             plate += [('slot', (x1 + x2) / 2, (y1 + y2) / 2, 5.0, travel + 5), ('circle', x1, y1, 2.4), ('circle', x2, y2, 2.4)]
-            lab = ((x1 + x2) / 2, y2 + 6)
+            lab = ((x1 + x2) / 2, y2 + 6.5, 0, chan or f"MIDI {f['ref'][2:]}", 4.0)  # controller RV1-RV4 run left to right
         elif 'PTA6044' in lib:  # custom dual: Fab box centre, M2 holes 71 apart (Bourns B dimension)
             x0, y0, x1, y1 = fab_box(f); x, y = T((x0 + x1) / 2, (y0 + y1) / 2)
             plate += [('slot', x, y, 5.0, 65), ('circle', x, y - 35.5, 2.4), ('circle', x, y + 35.5, 2.4)]
-            lab = (x, y + 41.5)
+            lab = (x, y + 42, 0, chan, 4.0)
         elif 'PVA2' in lib:  # body pokes 0.5 mm into the plate: body outline + 0.5
             x0, y0, x1, y1 = fab_box(f); x, y = T((x0 + x1) / 2, (y0 + y1) / 2)
             plate.append(('rect', x, y, x1 - x0 + 0.5, y1 - y0 + 0.5)); lab = (x, y + 7.5)
@@ -87,16 +90,16 @@ for entry in PLACE:
         elif 'WQP419GR' in lib:  # sits on the jack body, use an M6 washer under the nut
             x, y = P(0, 6.48); plate.append(('circle', x, y, 8.0)); lab = (x, y + 8)
         elif 'EC11' in lib:
-            x, y = P(7.5, 2.5); plate.append(('circle', x, y, 7.5)); lab = (x, y + 8)
+            x, y = P(7.5, 2.5); plate.append(('circle', x, y, 7.5)); lab = (x - 10.2, y, 90, f"ENC {f['ref'][3:]}")
         elif 'SW_PUSH_6mm' in lib:
             x, y = P(3.25, 2.25); plate.append(('circle', x, y, 4.5))
         elif 'SW_Latch_7x7' in lib:
             x0, y0, x1, y1 = fab_box(f); x, y = T((x0 + x1) / 2, (y0 + y1) / 2)
-            plate.append(('circle', x, y, 5.0)); lab = (x, y + 7)
+            plate.append(('circle', x, y, 5.0)); lab = (x, y + 7, 0, 'POWER')
         elif 'NCJ6FA' in lib or 'NC3MAAV' in lib:  # Neutrik D: Ø22.2 + 2 x M3 on the diagonal
             x, y = P(-7.62, 0) if 'NCJ6' in lib else P(3.81, 0)
             shelf += [('circle', x, y, 22.2), ('circle', x - 9.9, y - 9.9, 3.2), ('circle', x + 9.9, y + 9.9, 3.2)]
-            lab = (x, y + 15)
+            lab = (x, y + 15, 0, f'MIC {chan}') if 'NCJ6' in lib else (x, y + 15)
         elif 'NJ3FD' in lib or 'NJ5FD' in lib:
             x, y = P(0, 5.72); shelf.append(('circle', x, y, 12.2)); lab = (x, y + 10)
         elif lib.startswith('MountingHole'):
@@ -111,14 +114,14 @@ for entry in PLACE:
                                      ('LED_D3', 'led3'), ('LED_D5', 'led5'), ('WQP419', 'jack35'), ('EC11', 'encoder'),
                                      ('SW_PUSH', 'tact'), ('Latch', 'latch'), ('NCJ6', 'combo'), ('NC3MAAV', 'xlr'), ('NJ', 'trs')) if key in lib)
         parts.append(dict(kind=kind, cut=new[0], board=name, ref=f['ref'], val=f['val']))
-        if lab and f['val']:
-            labels.append((lab[0], lab[1], label_text(f['val']), 'shelf' if ('NCJ6' in lib or 'NC3M' in lib or 'NJ' in lib) else 'plate'))
+        if lab and f['val']:  # (x, y, rotation, text override, size)
+            lab = (*lab, *(0, None, 2.5)[len(lab) - 2:])
+            labels.append((lab[0], lab[1], lab[3] or label_text(f['val']), 'shelf' if ('NCJ6' in lib or 'NC3M' in lib or 'NJ' in lib) else 'plate', lab[2], lab[4]))
 
 # Controller: window over the ESP32 (BOOT/RESET reachable, printed lid), J1/J2 midline
 ex0, ey0 = 100, 100
 esp_x = to_case(next(e for e in BOARDS if e[0] == 'controller'), (214.55 + 239.95) / 2, 0)[0]
 plate.append(('rect', esp_x, 294, 30, 56))
-labels.append((esp_x, 294, 'ESP32 (lid)', 'plate'))
 
 # Shelf: 2.8" SPI TFT (ILI9341 module, 86 x 50 PCB) hung under the shelf over the digital board, cable to controller J4.
 # shortcut: generic module numbers (active area 57.6 x 43.2, holes ~80 x 44), measure the real TFT before ordering the shelf.
@@ -127,7 +130,6 @@ shelf.append(('rect', TFT[0], TFT[1], 60, 45))
 for sx in (-40, 40):
     for sy in (-22, 22):
         shelf.append(('circle', TFT[0] + sx, TFT[1] + sy, 3.2))
-labels.append((TFT[0], TFT[1] + 28, 'DISPLAY', 'shelf'))
 
 # Fixing holes (M3). Plate: posts in the right region (the boards hold the rest through their standoffs, the armrest
 # lip clamps the front edge). Shelf: M3 self-tappers into printed bosses on the rear wall, side walls and risers.
@@ -232,9 +234,9 @@ def write_dxf(n, cuts, poly):
             x, y = c[1], -c[2]
             m.add_lwpolyline([(x - r, y - h, 0, 0, 0), (x - r, y + h, 0, 0, -1), (x + r, y + h, 0, 0, 0), (x + r, y - h, 0, 0, -1)],
                              format='xyseb', close=True, dxfattribs={'layer': 'CUT'})
-    for x, y, t, pc in labels:
+    for x, y, t, pc, rot, size in labels:
         if pc == n:
-            m.add_text(t, height=2.5, dxfattribs={'layer': 'LABELS'}).set_placement((x, -y), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
+            m.add_text(t, height=size, rotation=rot, dxfattribs={'layer': 'LABELS'}).set_placement((x, -y), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
     d.saveas(os.path.join(OUT, f'{n}.dxf'))
 
 # ---- PDF drawing helpers (reportlab, origin bottom-left, so y flips) ----
@@ -258,10 +260,10 @@ def draw_piece(cv, n, cuts, poly, ox, oy, s, labels_on=True):
         cv.line(X(x0), Y(y0), X(x1), Y(y1))
     cv.setDash(); cv.setLineWidth(0.35)
     if labels_on:
-        cv.setFont('Helvetica', max(2.2 * s, 4))
-        for x, y, t, pc in labels:
+        for x, y, t, pc, rot, size in labels:
             if pc == n:
-                cv.drawCentredString(X(x), Y(y) - 1, t)
+                cv.saveState(); cv.translate(X(x), Y(y)); cv.rotate(rot)
+                cv.setFont('Helvetica', max(size * 0.9 * s, 4)); cv.drawCentredString(0, -size * 0.3 * s, t); cv.restoreState()
 
 def overview():
     cv = canvas.Canvas(os.path.join(OUT, 'panels_overview.pdf'), pagesize=(letter[1], letter[0]))
