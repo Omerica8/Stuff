@@ -17,7 +17,7 @@ Sources: Neutrik drawings NCJ6FA-V (20004523), NC3MAAV (ST-NC3MAAV), NJ3FD-V (31
 | **RD902F-40-15R1** dual (stereo RV1/RV2, master RV3) | body face **10.0** | **10.0–10.5** | same as RD901F | Ø7.5 | same body height as the single |
 | **PTA6043-2015DP** fader (strip RV6) | housing top **6.5** | **6.5 or higher on spacers** | lever top ≈21.5 (L = 15 above housing) | 60 mm travel slot + 2×M2 | M2 screws go into the housing top |
 | **PTA6044-2015DP** dual fader (stereo RV4, master RV4) | housing top **6.5** | same | lever top ≈21.5 | as above | same heights as the single |
-| **PVA2 EE H2** (strip SW1–3, master SW1) | top of plunger **23.04** at rest, 21.49 latched, 20.84 end stop | anything below ≈19 | — | plunger window | H1 (17.54 / 15.99 / 15.34) uses the same footprint |
+| **PVA2 EE H1** (strip SW1–3, master SW1) | body top **11.0** (9.2 × 9.8 mm); plunger (3.3 mm square) 17.54 at rest, 15.99 latched, 15.34 end stop | body pokes 0.5 mm into a 10.5 mm plate: **rectangular cut-out ≈9.8 × 10.4** | button cap (PE/PV) on the plunger | ≈9.8 × 10.4 | corrected 2026-10-27, see STATUS.md |
 | 3 mm LED (master D1–D20, strip D5, stereo D1) | 5.3 (soldered flush) | — | — | Ø3.1 | lift on a spacer so the dome reaches the panel |
 | **Controller** EC11 encoder, generic (ENC1–4) | mounting face ≈6.5–7 | ≈7 to ≈10 | M7 bushing ≈7 long, 20 mm shaft | Ø7.5 | generic part: **measure** |
 | Controller 6 mm tact H13 (SW1–4) | plunger top 13.0 | — | — | cap hole | H17 version has the same footprint |
