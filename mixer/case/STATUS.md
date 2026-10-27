@@ -1,5 +1,7 @@
 # Case (steps B and C): status
 
+**Update 2026-10-27: steps B and C are drawn. See PANEL.md for the files, the paper fit check, the to-verify list and the changes to the numbers below (risers moved, display under the shelf).**
+
 *2026-10-27. This work moved to a new thread before any drawing or CAD file was made. Below are the decisions and the numbers I had worked out, so the next session can start drawing straight away.*
 
 ## Done

@@ -21,6 +21,8 @@ Newest last. "Why" is given where it was recorded.
 | 2026-10-27 | Stepped top (2 mm control plate + raised 1.5 mm jack strip) instead of moving jacks to a rear panel | No PCB changes |
 | 2026-10-27 | PVA2 H1 switches, 4 mm fader spacers, LEDs raised 7.2 mm, ESP32/TFT without sockets | From the height study |
 | 2026-10-27 | Take part sizes from datasheets, not Omer's measurements; verify with a 1:1 paper print | Omer's instruction |
+| 2026-10-27 | Case CAD in Python (build123d + ezdxf via uv), generated from the KiCad boards, instead of OpenSCAD | Nothing to install on the PC, and one re-run follows any board change |
+| 2026-10-27 | Display under the raised shelf (meter-bridge style); risers hang from the shelf | Free space over the digital board; risers can't stand on the plate behind the mono combo jacks |
 
 ## Still open
 
