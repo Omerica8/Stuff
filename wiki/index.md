@@ -1,6 +1,6 @@
 # Project wiki
 
-Two linked builds by Omer, all on the `mixer` branch of Omerica8/Stuff:
+Omer's audio projects, all on the `mixer` branch of Omerica8/Stuff. The first two are linked builds; new projects get their own top-level folder and a line here.
 
 1. **FL Studio MIDI controller**: ESP32-S3 with 4 faders, 4 encoders, a 2.8" TFT and buttons, sending USB MIDI to FL Studio.
 2. **Full-size analog mixer** (Yamaha MG10XU style): 4 mic strips, 2 stereo strips, master, power, digital (USB audio + MIDI) and reverb boards. The controller becomes the mixer's MIDI section.

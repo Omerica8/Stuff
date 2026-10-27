@@ -1,4 +1,6 @@
-# Omer's audio mixer and FL Studio controller
+# Omer's audio projects
+
+This repo holds all of Omer's audio projects (README.md lists them). A new project gets its own top-level folder with a README.md, a row in README.md and a line in wiki/index.md.
 
 Always check wiki/ before answering questions about this project's architecture, patterns, or decisions. Start at wiki/index.md.
 
