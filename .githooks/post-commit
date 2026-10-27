@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Report-only, so a commit never leaves the tree dirty. Enable with: git config core.hooksPath .githooks
+bash wiki/update.sh --check
