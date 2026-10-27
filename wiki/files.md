@@ -31,6 +31,7 @@
 | [mixer/case/gen/printed_top.py](../mixer/case/gen/printed_top.py) | Printed top (replaces the aluminium plate and shelf): splits both pieces into Ender 3 tile |
 | [mixer/case/gen/render.py](../mixer/case/gen/render.py) | Preview render of the printed parts plus the two aluminium pieces (flat, from the DXF outl |
 | [mixer/case/gen/render_blender.py](../mixer/case/gen/render_blender.py) | Photo-style render of the mixer. Run after panels.py, case.py and printed_top.py: |
+| [mixer/cost/cost.py](../mixer/cost/cost.py) | Builds mixer_cost.xlsx: full analog mixer cost, US delivery, 2026-10-27. |
 | [mixer/full_mixer_design_plan_v1_digital.md](../mixer/full_mixer_design_plan_v1_digital.md) | Full-size mixer: design plan v1 (draft for Omer) |
 | [mixer/phase1_power/README.md](../mixer/phase1_power/README.md) | Phase 1: power board (design v1) |
 | [mixer/phase1_power/pcb/mixer_power_bom.csv](../mixer/phase1_power/pcb/mixer_power_bom.csv) |  |
