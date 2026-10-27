@@ -25,6 +25,7 @@ Newest last. "Why" is given where it was recorded.
 | 2026-10-27 | Display under the raised shelf (meter-bridge style); risers hang from the shelf | Free space over the digital board; risers can't stand on the plate behind the mono combo jacks |
 | 2026-10-27 | Top is 3D-printed instead of aluminium: 2.5 mm plate with nut recesses, 3 mm shelf with thin-web recesses at the 1/4" jacks, tiles joined by half-lap joints | Saves about $105; a printed part can have local recesses and built-in spacers |
 | 2026-10-27 | Mixer shifts toward MIDI: mic strips 4 → 2, new MIDI hub board (Pico RP2040: 5 DIN IN, 3 DIN OUT/THRU, USB-A host) on hub USB3 | Omer felt the mixer was too XLR-focused. Chosen over keeping 4 mics (+$30) or using only the ESP32's spare UARTs (no USB host, pin map full). Cost about $626 → $579 |
+| 2026-10-27 | Case stays 407 × 353 after the cut to 2 mic strips: MIDI hub along the back wall, digital board's ports out the right wall | Omer picked it over a narrower but deeper case or a separate MIDI box. No extra box, and the print layout stays the same |
 
 ## Still open
 

@@ -71,7 +71,7 @@ uv run --no-project --with build123d --with shapely python printed_top.py
 | 2.8" SPI TFT (ILI9341, generic) | window 60 × 45, 4 × Ø3.2 at 80 × 44 | **Measure your display** |
 | Rear wall: MIDI DIN, USB-B, USB-C, DC jack | from datasheet heights | Printed wall: file to fit |
 
-## Layout (option 1, 2026-10-27: 2 mic strips + MIDI hub)
+## Layout (option 1, chosen by Omer 2026-10-27: 2 mic strips + MIDI hub)
 
 Board positions live in `gen/layout.py`. `panels.py`, `case.py` and `render_blender.py` all read them, and `python layout.py` checks that every board is inside the walls and that no two overlap.
 
