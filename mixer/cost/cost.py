@@ -126,12 +126,52 @@ s.append(["Yellow rows on the Cost sheet are estimates; white rows are prices re
 s.append(["Not included: sales tax, solder/tools, spares, the optional 24LC32A EEPROM."])
 s.cell(s.max_row - 1, 1).alignment = Alignment(wrap_text=False)
 
+total = sum(r[3] * r[4] for r in ROWS)
+
+# Option: JLCPCB assembles every board (Economic PCBA, through-hole hand soldering, 2-board minimum per design).
+# Fees from jlcpcb.com/help/article/pcb-assembly-price (2026-10-22); duty from their US tariff FAQ (2026-07-24).
+JOINTS = {"strip": (248, 4), "stereo": (239, 2), "master": (389, 2), "power": (96, 2),
+          "digital": (113, 2), "reverb": (122, 2), "controller": (144, 2)}  # PTH pads from the drill files, boards built
+joints = sum(p * n for p, n in JOINTS.values())
+ASM = [
+    ("DIY total (Cost sheet)", "Everything above, you solder it", 1, None, "-", EST),
+    ("Assembly labour", f"{joints} through-hole joints x $0.0164", joints, 0.0164, "JLCPCB", LIVE),
+    ("Setup + stencil", "7 designs x ($8.18 + $1.53)", 7, 9.71, "JLCPCB", LIVE),
+    ("Hand-soldering fee", "per order", 1, 3.58, "JLCPCB", LIVE),
+    ("Parts for the 2-board minimum", "2nd master, power, digital, reverb boards (~$68 master, rest smaller)", 1, 105.00, "JLCPCB", EST),
+    ("JLC parts markup", "~25% over DigiKey/Mouser on ~$330 of board parts (global sourcing for Neutrik, THAT, PTA, PVA2)", 1, 82.00, "JLCPCB", EST),
+    ("US import duty", "~35% (Section 301 25% + 122 tariff 10%) on ~$640 of assembled boards", 1, 224.00, "JLCPCB DDP", EST),
+    ("Heavier DHL shipping", "~2.5 kg of built boards vs ~1.5 kg bare", 1, 25.00, "JLCPCB", EST),
+]
+a = wb.create_sheet("Assembled", 1)
+a.append(["Item", "Note", "Qty", "Unit $", "Total $", "Where", "Price"])
+for c in a[1]:
+    c.font = Font(bold=True)
+for r in ASM:
+    a.append(list(r[:4]) + [None] + list(r[4:]))
+    i = a.max_row
+    a.cell(i, 5, f"=C{i}*D{i}")
+    if r[5] == EST:
+        for c in a[i]:
+            c.fill = fill[EST]
+a.cell(2, 4, f"=SUM(Cost!F2:F{last})")
+n = a.max_row
+a.append(["TOTAL, boards assembled", "You still mount boards in the case, plug ribbons, fit the FV-1/hub/PCM2902 modules and knobs", None, None, f"=SUM(E2:E{n})"])
+for c in a[n + 1]:
+    c.font = Font(bold=True)
+for row in a.iter_rows(min_row=2, min_col=4, max_col=5):
+    for c in row:
+        c.number_format = "$#,##0.00"
+for col, w in zip("ABCDEFG", (30, 80, 7, 10, 11, 12, 10)):
+    a.column_dimensions[col].width = w
+
 wb.save("mixer_cost.xlsx")
 
-total = sum(r[3] * r[4] for r in ROWS)
 est = sum(r[3] * r[4] for r in ROWS if r[6] == EST)
 by = {sec: sum(r[3] * r[4] for r in ROWS if r[0] == sec) for sec in sections}
 assert abs(sum(by.values()) - total) < 1e-6
+asm = total + sum(r[2] * r[3] for r in ASM[1:])
+print(f"ASSEMBLED ${asm:.2f} ({joints} joints)")
 for sec, v in by.items():
     print(f"{sec:12s} ${v:7.2f}")
 print(f"TOTAL ${total:.2f}  (estimated part ${est:.2f})")
