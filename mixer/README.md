@@ -24,7 +24,7 @@ The pattern: an analog front end (mic preamps with 48 V phantom), then either an
 Audio stays analog from jack to jack, like the Yamaha MG10XU. Knobs and faders sit in the audio path. The mixer is split into **one small PCB per channel strip** plus a **master board**, joined by a ribbon-cable bus. You build and test one strip, then copy it, so a mistake costs one cheap board, not the whole mixer. A strip board (about 35 × 200 mm) also fits the Ender 3 bed for its own printed frame.
 
 ```
- MONO STRIP (x4)
+ MONO STRIP (x2)
  XLR/TRS combo ─► mic preamp ─► 80 Hz cut ─► 3-band EQ ─┬─► AUX knob (pre-fader) ──────► AUX bus
    (48 V switch)   (gain knob,    (switch)    (hi/mid/lo)│
                     pad switch)                          ├─► FX knob ───────────────────► FX bus
@@ -75,6 +75,8 @@ Your **ESP32-S3 core board moves into the mixer** as its MIDI section, sitting n
 | **USB MIDI** | FL Studio sees the mixer as a MIDI device: DIN ports + the controls below | ESP32-S3 native USB (already working in your Step 2 test) |
 
 The ESP32 also keeps your **4 faders + 4 encoders + TFT** as a MIDI control section for FL, separate from the audio faders. It can light the clip LEDs or show meters on the TFT later.
+
+**More MIDI (2026-10-27):** a separate MIDI hub board (phase6_midi/) adds 5 DIN IN, 3 DIN OUT (OUT 3 can be THRU) and a USB-A host port for USB-MIDI keyboards. It uses a Raspberry Pi Pico on the hub's third port, and the mic strips dropped from 4 to 2 to make room and pay for it.
 
 **One USB cable:** the PCM2902 (audio) and the ESP32 (MIDI) are two USB devices. A small USB hub chip (**FE1.1s**, or a ready-made hub module) joins them, so the PC sees one cable carrying both audio and MIDI, like a commercial mixer.
 
@@ -127,7 +129,7 @@ That uses 8 of your 10 B10K faders: 4 on the mono strips and 4 on the MIDI secti
 ## 7. Decisions still open
 
 1. ~~Architecture~~: **classic analog** (decided 2026-10-26).
-2. ~~Size~~: **4 mic channels** (decided 2026-10-26).
+2. ~~Size~~: **4 mic channels** (decided 2026-10-26), then **2 mic channels + a MIDI hub board** (Omer, 2026-10-27: the mixer was too XLR-focused).
 3. **Budget ceiling** for the whole thing?
 4. **Look:** printed case only, or a metal/wood top plate?
 5. **Extras:** reverb/delay FX module, LED meters, Bluetooth input: keep, drop, or later?
@@ -140,12 +142,13 @@ Next step from me: the Phase 1 power board is designed (phase1_power/README.md);
 | Board | Folder | Size | State |
 |---|---|---|---|
 | Power (±12 V, 48 V) | phase1_power/ | 100 × 85 mm | PCB done, checks clean, not ordered |
-| Mono mic strip ×4 | phase2_strip/ | 30 × 343 mm | PCB done, exact parts in pcb/PARTS.md |
+| Mono mic strip ×2 | phase2_strip/ | 30 × 343 mm | PCB done, exact parts in pcb/PARTS.md (was ×4 until 2026-10-27) |
 | Master | phase3_master/ | 60 × 343 mm | PCB done, check dual-fader + 3.5 mm jack footprints with a 1:1 print |
 | Digital (USB audio, hub, DIN MIDI) | phase3b_digital/ | 100 × 75 mm | PCB done, modules wired to pads |
 | Stereo strip ×2 (line, USB return) | phase4_stereo/ | 30 × 343 mm | PCB done |
 | Firmware step 5 (DIN MIDI bridge) | ../firmware/step5_din_midi/ | — | written, logic tested off-hardware |
 | Reverb carrier (phase5_reverb) | 74 × 50 mm | done, ERC/DRC clean | outputs in phase5_reverb/pcb |
+| MIDI hub (5 DIN IN, 3 OUT, USB host) | phase6_midi/ | 200 × 64 mm | PCB done, Pico on hub USB3 |
 | Enclosure | — | — | step A done (case/HEIGHTS.md) |
 
 Long-lead parts to order first: C&K PVA2 EE switches (~15 weeks), Bourns PTA6044 dual faders (up to 21 weeks), NTE1509 (LM3915 replacement).

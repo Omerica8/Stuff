@@ -22,13 +22,14 @@
 | [kicad-mcp/SETUP.md](../kicad-mcp/SETUP.md) | KiCad MCP server setup (Windows) |
 | [mixer/README.md](../mixer/README.md) | Full-size mixer: design plan v2, classic analog |
 | [mixer/case/HEIGHTS.md](../mixer/case/HEIGHTS.md) | Case step A: part heights and the panel-height conflict |
-| [mixer/case/PANEL.md](../mixer/case/PANEL.md) | Panels and printed case |
+| [mixer/case/PANEL.md](../mixer/case/PANEL.md) | Top panels and printed case |
 | [mixer/case/STATUS.md](../mixer/case/STATUS.md) | Case (steps B and C): status |
 | [mixer/case/gen/case.py](../mixer/case/gen/case.py) | 3D-printed case around the two aluminium pieces (Ender 3: every part fits a 220 x 220 bed, |
 | [mixer/case/gen/dump_boards.py](../mixer/case/gen/dump_boards.py) | Run with KiCad's python: dumps board outline + every footprint (ref, lib name, value, pos, |
-| [mixer/case/gen/panels.py](../mixer/case/gen/panels.py) | Builds the two aluminium top pieces from boards.json (made by dump_boards.py with KiCad's  |
+| [mixer/case/gen/panels.py](../mixer/case/gen/panels.py) | Builds the two top pieces (control plate, jack shelf) from boards.json (made by dump_board |
+| [mixer/case/gen/printed_top.py](../mixer/case/gen/printed_top.py) | Printed top (replaces the aluminium plate and shelf): splits both pieces into Ender 3 tile |
 | [mixer/case/gen/render.py](../mixer/case/gen/render.py) | Preview render of the printed parts plus the two aluminium pieces (flat, from the DXF outl |
-| [mixer/case/gen/render_blender.py](../mixer/case/gen/render_blender.py) | Photo-style render of the assembled mixer. Run after panels.py and case.py: |
+| [mixer/case/gen/render_blender.py](../mixer/case/gen/render_blender.py) | Photo-style render of the mixer. Run after panels.py, case.py and printed_top.py: |
 | [mixer/full_mixer_design_plan_v1_digital.md](../mixer/full_mixer_design_plan_v1_digital.md) | Full-size mixer: design plan v1 (draft for Omer) |
 | [mixer/phase1_power/README.md](../mixer/phase1_power/README.md) | Phase 1: power board (design v1) |
 | [mixer/phase1_power/pcb/mixer_power_bom.csv](../mixer/phase1_power/pcb/mixer_power_bom.csv) |  |
@@ -52,4 +53,7 @@
 | [mixer/phase5_reverb/README.md](../mixer/phase5_reverb/README.md) | Phase 5: FV-1 reverb carrier |
 | [mixer/phase5_reverb/pcb/PARTS.md](../mixer/phase5_reverb/pcb/PARTS.md) | Phase 5 reverb carrier: exact parts |
 | [mixer/phase5_reverb/pcb/mixer_reverb_bom.csv](../mixer/phase5_reverb/pcb/mixer_reverb_bom.csv) |  |
+| [mixer/phase6_midi/README.md](../mixer/phase6_midi/README.md) | Phase 6: MIDI hub board (design v1) |
+| [mixer/phase6_midi/pcb/PARTS.md](../mixer/phase6_midi/pcb/PARTS.md) | Phase 6 MIDI hub: exact parts |
+| [mixer/phase6_midi/pcb/mixer_midi_bom.csv](../mixer/phase6_midi/pcb/mixer_midi_bom.csv) |  |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |

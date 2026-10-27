@@ -1,4 +1,4 @@
-<!-- sources: mixer/phase2_strip/pcb/PARTS.md mixer/phase3_master/pcb/PARTS.md mixer/phase3b_digital/pcb/PARTS.md mixer/phase4_stereo/pcb/PARTS.md mixer/phase5_reverb/pcb/PARTS.md shopping/ controller/controller_bom.csv -->
+<!-- sources: mixer/phase2_strip/pcb/PARTS.md mixer/phase3_master/pcb/PARTS.md mixer/phase3b_digital/pcb/PARTS.md mixer/phase4_stereo/pcb/PARTS.md mixer/phase5_reverb/pcb/PARTS.md mixer/phase6_midi/pcb/PARTS.md shopping/ controller/controller_bom.csv -->
 # Parts and sourcing
 
 Omer is in the US (120 V / 60 Hz), so use US distributors (DigiKey, Mouser, Tayda, Jameco). Take part sizes from datasheets rather than asking Omer to measure, and check fit with a 1:1 paper print. Stock and prices in the PARTS.md files weren't read live, so confirm before ordering.
@@ -30,6 +30,7 @@ ESP32-S3 N16R8 DevKitC-style clone (2 USB-C), 2.8" ILI9341 240×320 SPI TFT with
 | Neutrik NCJ6FA-V, NJ5FD-V, NC3MAAV | Combo inputs, stereo inputs, XLR outs |
 | NTE1509 | LM3915 replacement (LM3915N-1 is obsolete) |
 | PCM2902 module, FE1.1s hub module (Amazon JESSINIE B0GTVPVPV9) | Digital board |
+| Raspberry Pi Pico (SC0915), 6N138 ×5, Same Sky SDS-50J ×8, Molex 67643 USB-A, Bourns MF-R050 | MIDI hub board |
 | Akizuki AE-FV-1-DIP | Reverb (may need ZenMarket proxy for US) |
 | Jameco ReliaPro ADU150150RV0650 | 15 VAC 1.5 A wall adapter, 2.1 mm (price unchecked) |
 

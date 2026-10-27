@@ -2,7 +2,7 @@
 
 *2026-10-26. Status: circuit designed and the filters checked in ngspice (ideal op-amps). PCB next. Nothing ordered.*
 
-One strip = one mic/line channel, like a Yamaha MG10XU mono channel. Four identical strips make channels 1 to 4.
+One strip = one mic/line channel, like a Yamaha MG10XU mono channel. Two identical strips make channels 1 and 2 (four until 2026-10-27, when the MIDI hub took the space).
 
 ## Controls, top to bottom
 
