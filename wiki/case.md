@@ -12,3 +12,4 @@ The case thread owns `mixer/case/`. Read [PANEL.md](../mixer/case/PANEL.md) (fil
 - **Under the plate:** PVA2 H1 switches in rectangular cut-outs (mono PAD/48V share one notch), 4 mm fader spacers, LEDs raised 7.2 mm, 7 mm low-profile or laid-flat electrolytics, ESP32 soldered without sockets under a printed lid.
 - **Feet:** printed rear wedges for about 10°, rubber feet at the front.
 - **Next:** on hold. When printing resumes: the 1:1 paper check (`out/panels_1to1_letter.pdf`), then print the tiles face down.
+- **Fader meters:** a 5-LED column beside every fader, marked PK / +6 / 0 / -10 / -20, with holes taken from the boards. The fader scales are on the left of each slot.
