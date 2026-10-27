@@ -42,7 +42,7 @@ def inside(poly, x, y):
     return Polygon(poly).buffer(0.01).contains(Point(x, y))
 
 # A cut is ('circle', x, y, d) or ('rect', x, y, w, h) or ('slot', x, y, w, len) (slot along y, round ends)
-plate, shelf, labels = [], [], []  # labels: (x, y, text, piece)
+plate, shelf, labels, parts = [], [], [], []  # labels: (x, y, text, piece)
 
 def fab_circles(f):
     return [g for g in f['fab'] if g[0] == 'c']
@@ -64,7 +64,7 @@ for name, bx, by in PLACE:
     for f in B[name]['fps']:
         lib, px, py = f['lib'], f['x'], f['y']
         P = lambda dx, dy: T(px + dx, py + dy)
-        lab = None
+        lab = None; n0p, n0s = len(plate), len(shelf)
         if 'RD90' in lib:  # 9 mm pots: the Fab circle is the shaft
             c = max(fab_circles(f), key=lambda g: g[3]); x, y = T(c[1], c[2])
             plate.append(('circle', x, y, 7.5)); lab = (x, y + 8)
@@ -107,6 +107,11 @@ for name, bx, by in PLACE:
             continue
         else:
             continue
+        new = plate[n0p:] or shelf[n0s:]
+        kind = next(k for key, k in (('RD902', 'pot_dual'), ('RD90', 'pot'), ('PTA', 'fader'), ('Fader', 'fader'), ('PVA2', 'pva'),
+                                     ('LED_D3', 'led3'), ('LED_D5', 'led5'), ('WQP419', 'jack35'), ('EC11', 'encoder'),
+                                     ('SW_PUSH', 'tact'), ('Latch', 'latch'), ('NCJ6', 'combo'), ('NC3MAAV', 'xlr'), ('NJ', 'trs')) if key in lib)
+        parts.append(dict(kind=kind, cut=new[0], board=name, ref=f['ref'], val=f['val']))
         if lab and f['val']:
             labels.append((lab[0], lab[1], label_text(f['val']), 'shelf' if ('NCJ6' in lib or 'NC3M' in lib or 'NJ' in lib) else 'plate'))
 
@@ -268,6 +273,8 @@ def tiled():
                 cv.showPage()
     cv.save()
 
+json.dump(dict(pieces={n: dict(outline=poly, holes=c) for n, (c, poly, _) in PIECES.items()}, parts=parts, labels=labels,
+               tft=TFT, esp_window=[esp_x, 294, 30, 56]), open(os.path.join(HERE, 'render_scene.json'), 'w'))
 for n, (cuts, poly, _) in PIECES.items():
     write_dxf(n, cuts, poly)
 overview(); tiled()
