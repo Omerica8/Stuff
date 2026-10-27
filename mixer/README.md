@@ -145,6 +145,7 @@ Next step from me: the Phase 1 power board is designed (phase1_power/README.md);
 | Digital (USB audio, hub, DIN MIDI) | phase3b_digital/ | 100 × 75 mm | PCB done, modules wired to pads |
 | Stereo strip ×2 (line, USB return) | phase4_stereo/ | 30 × 343 mm | PCB done |
 | Firmware step 5 (DIN MIDI bridge) | ../firmware/step5_din_midi/ | — | written, logic tested off-hardware |
-| Reverb module, enclosure | — | — | not started |
+| Reverb carrier (phase5_reverb) | 74 × 50 mm | done, ERC/DRC clean | outputs in phase5_reverb/pcb |
+| Enclosure | — | — | step A done (case/HEIGHTS.md) |
 
 Long-lead parts to order first: C&K PVA2 EE switches (~15 weeks), Bourns PTA6044 dual faders (up to 21 weeks), NTE1509 (LM3915 replacement).
