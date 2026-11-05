@@ -10,8 +10,9 @@
 # Several actions in a row (a macro):
 #   steps = [ {keys = "ctrl+c"}, {wait = 0.2}, {keys = "ctrl+v"} ]   wait is in seconds
 
-port = "auto"     # or e.g. "COM5" if auto doesn't find it
-volume = true     # false = fader does nothing
+connection = "bluetooth"   # "usb" or "bluetooth" (restart the helper after changing)
+port = "auto"              # USB only: or e.g. "COM5" if auto doesn't find it
+volume = true              # false = fader does nothing
 
 [button1]
 keys = "play/pause media"
