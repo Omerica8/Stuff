@@ -2,7 +2,7 @@
 
 A standalone ESP32-S3 on perfboard: one fader sets the Windows master volume (absolute, so fader at the bottom = 0 %, top = 100 %), and four buttons run whatever you put in a text file. State: code written, not yet tested on the hardware.
 
-How it works: the ESP32 only reports what it sees over USB serial (`F 73` = fader at 73 %, `B 2 1` = button 2 pressed). A small Python program on the PC, the helper, turns that into volume changes and macros. So changing what a button does is editing [helper/buttons.toml](helper/buttons.toml), never reflashing.
+How it works: the ESP32 only reports what it sees over Bluetooth LE or USB (`F 73` = fader at 73 %, `B 2 1` = button 2 pressed). A small Python program on the PC, the helper, turns that into volume changes and macros. So changing what a button does is editing [helper/buttons.toml](helper/buttons.toml), never reflashing.
 
 | Folder | What's in it |
 |---|---|
@@ -41,9 +41,18 @@ GPIO19/20 are the USB lines; leave them free.
    ```
    py -m pip install -r requirements.txt
    ```
-3. Double-click **start.bat**. It finds the fader by itself and prints `Connected on COM5` (or similar). Move the fader: the Windows volume follows. Press the buttons: with the example settings, 1 = play/pause, 2 = mute, 3 = opens YouTube, 4 = opens Notepad and types a line.
+3. Double-click **start.bat**. It finds the fader by itself and prints `Connected over Bluetooth` (or `Connected on COM5` in USB mode). Move the fader: the Windows volume follows. Press the buttons: with the example settings, 1 = play/pause, 2 = mute, 3 = opens YouTube, 4 = opens Notepad and types a line.
 
 To start it with Windows: press **Win+R**, type `shell:startup`, Enter, and put a shortcut to `start.bat` in that folder.
+
+## Bluetooth or USB
+
+The sketch talks over both at once; `connection` at the top of `buttons.toml` picks which one the helper listens to (`"bluetooth"` by default, `"usb"` for the cable). Restart the helper after changing it.
+
+- **Don't pair it in Windows Bluetooth settings.** The helper connects to the device named `PC Fader` by itself. Your PC just needs Bluetooth switched on.
+- The onboard LED glows dim blue while Bluetooth is connected.
+- Bluetooth only carries the data. The board still needs power: a USB phone charger or power bank works. A battery inside the build is a later step.
+- Volume over Bluetooth can lag a few tens of milliseconds behind the fader; use USB if that bothers you.
 
 ## 3. Change what the buttons do
 
@@ -68,6 +77,6 @@ If you make a typo, the helper prints what's wrong and keeps the last good setti
 ## Things to know
 
 - Shortcuts don't reach programs running as Administrator unless the helper is also run as Administrator.
-- If auto-detect picks the wrong device, set `port = "COM5"` (your number, from Device Manager or the Arduino IDE port list) in `buttons.toml` and restart the helper.
+- In USB mode, if auto-detect picks the wrong device, set `port = "COM5"` (your number, from Device Manager or the Arduino IDE port list) in `buttons.toml` and restart the helper.
 - Volume follows whatever Windows has as the default output device, including after you switch to headphones.
 - Self-check of the message parser and config: `py pc_fader.py --test` prints `ok`.

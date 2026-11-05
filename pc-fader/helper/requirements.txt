@@ -1,3 +1,4 @@
 pyserial
 pycaw
 keyboard
+bleak

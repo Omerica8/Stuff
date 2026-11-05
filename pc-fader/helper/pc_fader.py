@@ -1,6 +1,6 @@
 # PC fader helper (Windows): fader -> master volume, buttons -> actions from buttons.toml.
 # Edit buttons.toml and save; the change applies on the next button press, no restart needed.
-import os, subprocess, sys, time, tomllib
+import asyncio, os, queue, subprocess, sys, threading, time, tomllib
 from pathlib import Path
 
 import keyboard
@@ -82,9 +82,10 @@ def find_port(config):
     return None
 
 
-def main():
-    config = load_config() or {}
-    mtime = CONFIG.stat().st_mtime
+NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"  # must match the sketch
+
+
+def read_usb(config, lines):
     while True:
         port = find_port(config)
         if not port:
@@ -92,24 +93,70 @@ def main():
             time.sleep(2)
             continue
         print(f"Connected on {port}. Ctrl+C to quit.")
-        last = None
         try:
             with serial.Serial(port, 115200, timeout=2) as s:
                 while True:
-                    msg = parse(s.readline().decode(errors="ignore"))
-                    if not msg:
-                        continue
-                    if msg[0] == "F" and config.get("volume", True) and msg[1] != last:
-                        last = msg[1]
-                        set_volume(last)
-                    elif msg[0] == "B" and msg[2]:
-                        if CONFIG.stat().st_mtime != mtime:
-                            mtime = CONFIG.stat().st_mtime
-                            config = load_config() or config
-                        press(msg[1], config)
+                    lines.put(s.readline().decode(errors="ignore"))
         except serial.SerialException:
             print("Fader unplugged.")
             time.sleep(1)
+
+
+async def read_bluetooth(name, lines):
+    from bleak import BleakClient, BleakScanner
+    while True:
+        print(f'Looking for Bluetooth device "{name}"...')
+        dev = await BleakScanner.find_device_by_name(name, timeout=10)
+        if not dev:
+            continue
+        buf = ""
+
+        def on_data(_, data):
+            nonlocal buf
+            buf += data.decode(errors="ignore")
+            while "\n" in buf:
+                line, buf = buf.split("\n", 1)
+                lines.put(line)
+
+        gone = asyncio.Event()
+        try:
+            async with BleakClient(dev, disconnected_callback=lambda _: gone.set()) as client:
+                await client.start_notify(NUS_TX, on_data)
+                print("Connected over Bluetooth. Ctrl+C to quit.")
+                await gone.wait()
+            print("Bluetooth disconnected.")
+        except Exception as e:  # out of range, switched off, etc.: just look again
+            print(f"Bluetooth connect failed: {e}")
+            await asyncio.sleep(2)
+
+
+def main():
+    config = load_config() or {}
+    mtime = CONFIG.stat().st_mtime
+    lines = queue.Queue()
+    # The reader runs in its own thread; volume and macros run here, so Bluetooth and the
+    # Windows audio API don't share a COM apartment.
+    if config.get("connection", "usb") == "bluetooth":
+        reader = lambda: asyncio.run(read_bluetooth(config.get("bluetooth_name", "PC Fader"), lines))
+    else:
+        reader = lambda: read_usb(config, lines)
+    threading.Thread(target=reader, daemon=True).start()
+    last = None
+    while True:
+        try:
+            msg = parse(lines.get(timeout=0.5))  # timeout keeps Ctrl+C working
+        except queue.Empty:
+            continue
+        if not msg:
+            continue
+        if msg[0] == "F" and config.get("volume", True) and msg[1] != last:
+            last = msg[1]
+            set_volume(last)
+        elif msg[0] == "B" and msg[2]:
+            if CONFIG.stat().st_mtime != mtime:
+                mtime = CONFIG.stat().st_mtime
+                config = load_config() or config
+            press(msg[1], config)
 
 
 if __name__ == "__main__":
