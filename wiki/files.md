@@ -58,4 +58,7 @@
 | [mixer/phase6_midi/README.md](../mixer/phase6_midi/README.md) | Phase 6: MIDI hub board (design v1) |
 | [mixer/phase6_midi/pcb/PARTS.md](../mixer/phase6_midi/pcb/PARTS.md) | Phase 6 MIDI hub: exact parts |
 | [mixer/phase6_midi/pcb/mixer_midi_bom.csv](../mixer/phase6_midi/pcb/mixer_midi_bom.csv) |  |
+| [pc-fader/README.md](../pc-fader/README.md) | PC fader: master volume + 4 macro buttons |
+| [pc-fader/helper/pc_fader.py](../pc-fader/helper/pc_fader.py) | PC fader helper (Windows): fader -> master volume, buttons -> actions from buttons.toml. |
+| [pc-fader/pc_fader/pc_fader.ino](../pc-fader/pc_fader/pc_fader.ino) | PC fader: one fader (GPIO1) + four buttons (GPIO4-7) talk to the PC helper over USB serial |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |

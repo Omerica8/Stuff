@@ -1,0 +1,27 @@
+# What each button does. Edit, save, press the button: no restart, no reflashing.
+# Lines starting with # are notes and are ignored.
+#
+# One action per button:
+#   keys = "ctrl+shift+m"            a shortcut (also "play/pause media", "next track",
+#                                    "previous track", "volume mute", "f13", "windows+d")
+#   type = "some text"               types the text
+#   run = "notepad.exe"              opens a program, file, folder or https:// link
+#   command = "shutdown /h"          runs a command line
+# Several actions in a row (a macro):
+#   steps = [ {keys = "ctrl+c"}, {wait = 0.2}, {keys = "ctrl+v"} ]   wait is in seconds
+
+port = "auto"     # or e.g. "COM5" if auto doesn't find it
+volume = true     # false = fader does nothing
+
+[button1]
+keys = "play/pause media"
+
+[button2]
+keys = "volume mute"
+
+[button3]
+run = "https://www.youtube.com"
+
+[button4]
+# Example macro: open Notepad and type into it
+steps = [ {run = "notepad.exe"}, {wait = 1.0}, {type = "Hello from my fader!"} ]
