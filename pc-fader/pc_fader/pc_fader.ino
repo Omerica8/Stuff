@@ -5,7 +5,9 @@
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
+#if !CONFIG_NIMBLE_ENABLED
 #include <BLE2902.h>
+#endif
 
 const int FADER_PIN = 1;
 const int BUTTON_PINS[4] = {4, 5, 6, 7};  // wired to GND, internal pull-ups
@@ -50,7 +52,9 @@ void setup() {
   server->setCallbacks(new ServerEvents());
   BLEService *service = server->createService(NUS_SERVICE);
   bleTx = service->createCharacteristic(NUS_TX, BLECharacteristic::PROPERTY_NOTIFY);
-  bleTx->addDescriptor(new BLE2902());
+#if !CONFIG_NIMBLE_ENABLED
+  bleTx->addDescriptor(new BLE2902());  // NimBLE (core 3.3+ on the S3) adds this itself; a second copy breaks Windows service discovery
+#endif
   service->start();
   BLEDevice::getAdvertising()->addServiceUUID(NUS_SERVICE);
   BLEDevice::startAdvertising();
