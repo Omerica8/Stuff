@@ -120,7 +120,9 @@ async def read_bluetooth(name, lines):
 
         gone = asyncio.Event()
         try:
-            async with BleakClient(dev, disconnected_callback=lambda _: gone.set()) as client:
+            # use_cached_services=False: Windows re-reads the services after a reflash
+            async with BleakClient(dev, disconnected_callback=lambda _: gone.set(),
+                                   winrt={"use_cached_services": False}) as client:
                 await client.start_notify(NUS_TX, on_data)
                 print("Connected over Bluetooth. Ctrl+C to quit.")
                 await gone.wait()
