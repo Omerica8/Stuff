@@ -36,6 +36,10 @@ GPIO19/20 are the USB lines; leave them free.
 
 ## 2. Set up the helper on the PC (once)
 
+**Easiest, no Python needed:** download `pc-fader-windows.zip` from the latest [PC fader release](https://github.com/Omerica8/Stuff/releases/latest), unzip it anywhere, and double-click `PCFader.exe`. `PCFader-hidden.exe` does the same with no window (put a shortcut to it in `shell:startup`). Edit the `buttons.toml` next to them. Windows SmartScreen may warn on first run because the file isn't signed: click **More info > Run anyway**.
+
+**Or run it from Python:**
+
 1. Install **Python 3.11 or newer** from python.org. On the first installer screen, tick **Add python.exe to PATH**.
 2. Open the `helper` folder in File Explorer, click the address bar, type `cmd` and press Enter. In the black window, type:
    ```
