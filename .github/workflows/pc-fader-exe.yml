@@ -1,0 +1,38 @@
+# Builds the PC fader helper into Windows .exe files and publishes them as a GitHub release.
+name: PC fader exe
+on:
+  push:
+    branches: [Main]
+    paths: ["pc-fader/helper/**", ".github/workflows/pc-fader-exe.yml"]
+  pull_request:
+    paths: ["pc-fader/helper/**", ".github/workflows/pc-fader-exe.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build
+        working-directory: pc-fader/helper
+        run: |
+          python -m pip install -r requirements.txt pyinstaller
+          $common = "--onefile", "--collect-all", "bleak", "--collect-all", "winrt", "--collect-submodules", "comtypes", "--collect-submodules", "pycaw"
+          pyinstaller @common --name PCFader pc_fader.py
+          pyinstaller @common --noconsole --name PCFader-hidden pc_fader.py
+          Copy-Item buttons.toml dist/
+          dist/PCFader.exe --test
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive dist/PCFader.exe, dist/PCFader-hidden.exe, dist/buttons.toml pc-fader-windows.zip
+      - uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          tag_name: pc-fader-build-${{ github.run_number }}
+          name: PC fader for Windows (build ${{ github.run_number }})
+          body: "Unzip anywhere. PCFader.exe shows messages; PCFader-hidden.exe runs with no window (put a shortcut to it in shell:startup). Edit buttons.toml next to them."
+          files: pc-fader/helper/pc-fader-windows.zip
+          make_latest: true

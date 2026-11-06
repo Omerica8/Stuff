@@ -7,7 +7,9 @@ import keyboard
 import serial
 from serial.tools import list_ports
 
-CONFIG = Path(__file__).with_name("buttons.toml")
+# Next to the .exe when packaged (PyInstaller unpacks the script to a temp folder), else next to this file.
+HERE = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+CONFIG = HERE / "buttons.toml"
 
 
 def set_volume(percent):
@@ -193,6 +195,8 @@ def main():
 
 if __name__ == "__main__":
     if "--test" in sys.argv:
+        if getattr(sys, "frozen", False):  # the .exe must have bundled the lazily imported parts
+            import bleak, comtypes, pycaw.pycaw  # noqa: F401
         assert parse("F 73\n") == ("F", 73)
         assert parse("F 150") == ("F", 100)
         assert parse("B 2 1") == ("B", 2, True)
