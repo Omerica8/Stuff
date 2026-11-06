@@ -1,4 +1,4 @@
-// PC fader: one fader (GPIO1) + four buttons (GPIO4-7) talk to the PC helper over USB serial
+// PC fader: one fader (GPIO1) + four buttons (GPIO4, 5, 6, 17) talk to the PC helper over USB serial
 // and Bluetooth LE at the same time (the helper picks which one in buttons.toml).
 // Sends lines like "F 73" (fader, 0-100) and "B 2 1" / "B 2 0" (button 2 pressed / released).
 // All the meaning (volume, macros) lives in the PC helper, so you never reflash to change a button.
@@ -12,7 +12,7 @@
 #endif
 
 const int FADER_PIN = 1;
-const int BUTTON_PINS[4] = {4, 5, 6, 7};  // wired to GND, internal pull-ups
+const int BUTTON_PINS[4] = {4, 5, 6, 17};  // wired to GND, internal pull-ups
 const int RAW_MIN = 40, RAW_MAX = 4000;     // fader ends, same calibration as the controller steps
 const int RGB_PIN = 48;                     // on-board RGB LED (38 on some boards)
 
