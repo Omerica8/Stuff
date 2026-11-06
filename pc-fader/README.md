@@ -51,7 +51,7 @@ The sketch talks over both at once; `connection` at the top of `buttons.toml` pi
 
 - **Don't pair it in Windows Bluetooth settings.** The helper connects to the device named `PC Fader` by itself. Your PC just needs Bluetooth switched on.
 - The onboard LED glows dim blue while Bluetooth is connected.
-- Bluetooth only carries the data. The board still needs power: a USB phone charger or power bank works. A battery inside the build is a later step.
+- Bluetooth only carries the data. The board still needs power: a USB phone charger, a power bank, or the built-in battery in [BATTERY.md](BATTERY.md).
 - Volume over Bluetooth can lag a few tens of milliseconds behind the fader; use USB if that bothers you.
 
 ## 3. Change what the buttons do

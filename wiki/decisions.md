@@ -29,6 +29,7 @@ Newest last. "Why" is given where it was recorded.
 | 2026-10-27 | 5-LED level meter beside every fader: analog strips get −20/−10/0/+6 + the existing PEAK LED (TL072 peak hold + LM339), the 4 MIDI faders get addressable RGB LEDs from the ESP32 | Omer chose it over a signal+peak pair (~$3) or MIDI-only LEDs; about +$20, cost ~$579 → ~$599 |
 | 2026-11-05 | PC fader: ESP32 sends fader/button state over USB serial; a Python helper (pycaw + keyboard) sets Windows master volume and runs macros from `buttons.toml` | HID volume keys are only relative steps; a PC-side config lets Omer reassign buttons without reflashing |
 | 2026-11-05 | PC fader goes wireless over Bluetooth LE (Nordic UART service, `bleak` on the PC), USB kept as a fallback | The S3 has BLE only (no Classic SPP). BLE HID volume would be relative only, so the helper still sets absolute volume |
+| 2026-11-06 | PC fader on battery: new 1S LiPo (1200–2000 mAh, protected) + Adafruit PowerBoost 1000C into the devkit 5V pin, EN switch | Omer chose new parts over reusing a mini-drone cell; PowerBoost charges while running and needs no extra protection board |
 
 ## Still open
 
