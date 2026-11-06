@@ -43,7 +43,7 @@ GPIO19/20 are the USB lines; leave them free.
    ```
 3. Double-click **start.bat**. It finds the fader by itself and prints `Connected over Bluetooth` (or `Connected on COM5` in USB mode). Move the fader: the Windows volume follows. Press the buttons: with the example settings, 1 = play/pause, 2 = mute, 3 = opens YouTube, 4 = opens Notepad and types a line.
 
-To start it with Windows: press **Win+R**, type `shell:startup`, Enter, and put a shortcut to `start.bat` in that folder.
+To start it with Windows and no window: press **Win+R**, type `shell:startup`, Enter, and put a shortcut to `start_hidden.pyw` in that folder (right-click the file > Show more options > Create shortcut, then move the shortcut). To stop it, end **pythonw** in Task Manager. Use `start.bat` when you want to see its messages.
 
 ## Bluetooth or USB
 
