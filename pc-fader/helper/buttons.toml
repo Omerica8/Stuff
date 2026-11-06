@@ -9,6 +9,8 @@
 #   command = "shutdown /h"          runs a command line
 # Several actions in a row (a macro):
 #   steps = [ {keys = "ctrl+c"}, {wait = 0.2}, {keys = "ctrl+v"} ]   wait is in seconds
+# A different action on a double tap (single taps then wait 0.35 s to be sure):
+#   double = {keys = "previous track"}
 
 connection = "bluetooth"   # "usb" or "bluetooth" (restart the helper after changing)
 port = "auto"              # USB only: or e.g. "COM5" if auto doesn't find it
@@ -21,7 +23,8 @@ keys = "play/pause media"
 keys = "volume mute"
 
 [button3]
-run = "https://www.youtube.com"
+keys = "next track"
+double = {keys = "previous track"}
 
 [button4]
 # Example macro: open Notepad and type into it

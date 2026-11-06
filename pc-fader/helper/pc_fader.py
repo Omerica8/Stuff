@@ -34,17 +34,41 @@ def do_step(step):
         time.sleep(step["wait"])
 
 
-def press(n, config):
+def press(n, config, double=False):
     action = config.get(f"button{n}")
+    if action and double:
+        action = action.get("double")
     if not action:
         print(f"button {n}: nothing set in buttons.toml")
         return
-    print(f"button {n}: {action}")
+    print(f"button {n}{' double tap' if double else ''}: {action}")
     for step in action.get("steps", [action]):
         try:
             do_step(step)
         except Exception as e:  # a bad macro must not stop the fader
             print(f"  failed: {e}")
+
+
+DOUBLE_TAP = 0.35  # seconds between taps that count as a double tap
+
+
+def tap(pending, n, now, has_double):
+    """Returns "single", "double" or None (wait for a possible second tap). pending = {button: first tap time}."""
+    if n in pending:
+        del pending[n]
+        return "double"
+    if has_double:
+        pending[n] = now
+        return None
+    return "single"
+
+
+def expired(pending, now):
+    """Buttons whose double-tap window ran out: fire their single action."""
+    done = [n for n, t in pending.items() if now - t > DOUBLE_TAP]
+    for n in done:
+        del pending[n]
+    return done
 
 
 def load_config():
@@ -144,9 +168,12 @@ def main():
         reader = lambda: read_usb(config, lines)
     threading.Thread(target=reader, daemon=True).start()
     last = None
+    pending = {}
     while True:
-        try:
-            msg = parse(lines.get(timeout=0.5))  # timeout keeps Ctrl+C working
+        for n in expired(pending, time.monotonic()):
+            press(n, config)
+        try:  # short timeout while a double tap may follow; the timeout also keeps Ctrl+C working
+            msg = parse(lines.get(timeout=0.05 if pending else 0.5))
         except queue.Empty:
             continue
         if not msg:
@@ -158,7 +185,10 @@ def main():
             if CONFIG.stat().st_mtime != mtime:
                 mtime = CONFIG.stat().st_mtime
                 config = load_config() or config
-            press(msg[1], config)
+            has_double = "double" in config.get(f"button{msg[1]}", {})
+            kind = tap(pending, msg[1], time.monotonic(), has_double)
+            if kind:
+                press(msg[1], config, double=kind == "double")
 
 
 if __name__ == "__main__":
@@ -169,6 +199,11 @@ if __name__ == "__main__":
         assert parse("B 2 0") == ("B", 2, False)
         assert parse("garbage") is None and parse("") is None and parse("F x") is None
         assert tomllib.loads(CONFIG.read_text(encoding="utf-8"))["button4"]["steps"]
+        p = {}
+        assert tap(p, 1, 0.0, False) == "single" and not p
+        assert tap(p, 3, 0.0, True) is None and expired(p, 0.2) == []
+        assert tap(p, 3, 0.2, True) == "double" and not p
+        assert tap(p, 3, 1.0, True) is None and expired(p, 1.4) == [3] and not p
         print("ok")
     else:
         try:
