@@ -5,7 +5,9 @@
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
-#if !CONFIG_NIMBLE_ENABLED
+#if CONFIG_NIMBLE_ENABLED
+#include "host/ble_gatt.h"
+#else
 #include <BLE2902.h>
 #endif
 
@@ -19,8 +21,21 @@ const int RGB_PIN = 48;                     // on-board RGB LED (38 on some boar
 #define NUS_TX      "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 BLECharacteristic *bleTx;
-BLEServer *server;
-bool bleConnected = false;  // polled in loop(): the connect callbacks don't fire on every BLE backend
+volatile bool bleConnected = false;  // drives the blue LED
+
+// Core 3.3 (NimBLE) rejects Windows' connect event, so onConnect never fires; use subscribe instead.
+class ServerEvents : public BLEServerCallbacks {
+  void onConnect(BLEServer *) override { bleConnected = true; }  // Bluedroid only
+  void onDisconnect(BLEServer *server) override {
+    bleConnected = false;
+    server->startAdvertising();  // so the PC can reconnect
+  }
+};
+#if CONFIG_NIMBLE_ENABLED
+class TxEvents : public BLECharacteristicCallbacks {
+  void onSubscribe(BLECharacteristic *, ble_gap_conn_desc *, uint16_t subValue) override { bleConnected = subValue != 0; }
+};
+#endif
 
 int lastPercent = -1;
 float smooth = -1;
@@ -30,7 +45,13 @@ unsigned long lastChange[4], lastHeartbeat;
 void send(const char *line) {
   Serial.print(line);
   bleTx->setValue((uint8_t *)line, strlen(line));
-  bleTx->notify();  // does nothing when no one is subscribed
+#if CONFIG_NIMBLE_ENABLED
+  // notify() checks the library's client count, which stays 0 (see above); NimBLE itself
+  // knows who subscribed, so ask it to notify them.
+  ble_gatts_chr_updated(bleTx->getHandle());
+#else
+  bleTx->notify();
+#endif
 }
 
 void setup() {
@@ -39,10 +60,13 @@ void setup() {
   for (int i = 0; i < 4; i++) pinMode(BUTTON_PINS[i], INPUT_PULLUP);
 
   BLEDevice::init("PC Fader");
-  server = BLEDevice::createServer();
+  BLEServer *server = BLEDevice::createServer();
+  server->setCallbacks(new ServerEvents());
   BLEService *service = server->createService(NUS_SERVICE);
   bleTx = service->createCharacteristic(NUS_TX, BLECharacteristic::PROPERTY_NOTIFY);
-#if !CONFIG_NIMBLE_ENABLED
+#if CONFIG_NIMBLE_ENABLED
+  bleTx->setCallbacks(new TxEvents());
+#else
   bleTx->addDescriptor(new BLE2902());  // NimBLE (core 3.3+ on the S3) adds this itself; a second copy breaks Windows service discovery
 #endif
   service->start();
@@ -56,9 +80,6 @@ void setup() {
 
 void loop() {
   char line[16];
-  bool nowConnected = server->getConnectedCount() > 0;
-  if (bleConnected && !nowConnected) BLEDevice::startAdvertising();  // so the PC can reconnect
-  bleConnected = nowConnected;
   long sum = 0;
   for (int i = 0; i < 16; i++) sum += analogRead(FADER_PIN);
   float raw = sum / 16.0;
