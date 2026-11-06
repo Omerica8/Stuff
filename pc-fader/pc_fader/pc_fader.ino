@@ -19,15 +19,8 @@ const int RGB_PIN = 48;                     // on-board RGB LED (38 on some boar
 #define NUS_TX      "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 BLECharacteristic *bleTx;
-volatile bool bleConnected = false;
-
-class ServerEvents : public BLEServerCallbacks {
-  void onConnect(BLEServer *) override { bleConnected = true; }
-  void onDisconnect(BLEServer *server) override {
-    bleConnected = false;
-    server->startAdvertising();  // so the PC can reconnect
-  }
-};
+BLEServer *server;
+bool bleConnected = false;  // polled in loop(): the connect callbacks don't fire on every BLE backend
 
 int lastPercent = -1;
 float smooth = -1;
@@ -36,10 +29,8 @@ unsigned long lastChange[4], lastHeartbeat;
 
 void send(const char *line) {
   Serial.print(line);
-  if (bleConnected) {
-    bleTx->setValue((uint8_t *)line, strlen(line));
-    bleTx->notify();
-  }
+  bleTx->setValue((uint8_t *)line, strlen(line));
+  bleTx->notify();  // does nothing when no one is subscribed
 }
 
 void setup() {
@@ -48,8 +39,7 @@ void setup() {
   for (int i = 0; i < 4; i++) pinMode(BUTTON_PINS[i], INPUT_PULLUP);
 
   BLEDevice::init("PC Fader");
-  BLEServer *server = BLEDevice::createServer();
-  server->setCallbacks(new ServerEvents());
+  server = BLEDevice::createServer();
   BLEService *service = server->createService(NUS_SERVICE);
   bleTx = service->createCharacteristic(NUS_TX, BLECharacteristic::PROPERTY_NOTIFY);
 #if !CONFIG_NIMBLE_ENABLED
@@ -66,6 +56,9 @@ void setup() {
 
 void loop() {
   char line[16];
+  bool nowConnected = server->getConnectedCount() > 0;
+  if (bleConnected && !nowConnected) BLEDevice::startAdvertising();  // so the PC can reconnect
+  bleConnected = nowConnected;
   long sum = 0;
   for (int i = 0; i < 16; i++) sum += analogRead(FADER_PIN);
   float raw = sum / 16.0;
