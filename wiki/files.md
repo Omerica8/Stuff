@@ -61,5 +61,5 @@
 | [pc-fader/BATTERY.md](../pc-fader/BATTERY.md) | Battery power for the PC fader |
 | [pc-fader/README.md](../pc-fader/README.md) | PC fader: master volume + 4 macro buttons |
 | [pc-fader/helper/pc_fader.py](../pc-fader/helper/pc_fader.py) | PC fader helper (Windows): fader -> master volume, buttons -> actions from buttons.toml. |
-| [pc-fader/pc_fader/pc_fader.ino](../pc-fader/pc_fader/pc_fader.ino) | PC fader: one fader (GPIO1) + four buttons (GPIO4-7) talk to the PC helper over USB serial |
+| [pc-fader/pc_fader/pc_fader.ino](../pc-fader/pc_fader/pc_fader.ino) | PC fader: one fader (GPIO1) + four buttons (GPIO4, 5, 6, 17) talk to the PC helper over US |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |

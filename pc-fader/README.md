@@ -72,6 +72,8 @@ type = "my email signature"            # type text
 steps = [ {keys = "ctrl+a"}, {keys = "ctrl+c"}, {wait = 0.2}, {run = "notepad.exe"}, {wait = 1}, {keys = "ctrl+v"} ]
 ```
 
+A button can also do something different on a double tap: add `double = {keys = "previous track"}` under it. Single taps on that button then wait about a third of a second before firing, to see if a second tap is coming.
+
 If you make a typo, the helper prints what's wrong and keeps the last good settings.
 
 ## Things to know
