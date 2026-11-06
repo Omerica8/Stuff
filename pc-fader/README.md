@@ -15,7 +15,7 @@ How it works: the ESP32 only reports what it sees over Bluetooth LE or USB (`F 7
 |---|---|
 | Fader wiper (middle pin) | GPIO1 |
 | Fader ends | 3V3 and GND (if the volume goes the wrong way, swap these two) |
-| Buttons 1–4 | GPIO4, 5, 6, 7, other leg of each to GND (no resistors, the sketch turns on pull-ups) |
+| Buttons 1–4 | GPIO4, 5, 6, 17, other leg of each to GND (no resistors, the sketch turns on pull-ups) |
 
 GPIO19/20 are the USB lines; leave them free.
 
