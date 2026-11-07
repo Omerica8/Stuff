@@ -30,7 +30,7 @@ double = {keys = "previous track"}
 # Example macro: open Notepad and type into it
 steps = [ {run = "notepad.exe"}, {wait = 1.0}, {type = "Hello from my fader!"} ]
 
-# FL Studio: while FL is the window in front, the fader sends MIDI (CC 7 on the
+# FL Studio: while FL is the window in front, the fader and buttons send MIDI (on the
 # loopMIDI port "PC Fader") and these buttons replace the ones above. A button not
 # listed here keeps its normal action. See "FL Studio" in the README for setup.
 [fl]
@@ -40,14 +40,17 @@ midi_port = "PC Fader" # the port name you made in loopMIDI
 fader_cc = 7            # CC 20-23 are taken by the FL controller's faders
 channel = 1
 
+# Each FL button sends a MIDI CC like the fader (127 while held, 0 on release):
+# right-click anything in FL > Link to controller, then press the button.
+# Use keys = "..." instead of cc = ... for an FL keyboard shortcut.
 [fl.button1]
-keys = "space"         # play / stop
+cc = 102
 
 [fl.button2]
-keys = "r"             # record on/off
+cc = 103
 
 [fl.button3]
-keys = "ctrl+s"        # save
+cc = 104
 
 [fl.button4]
-keys = "f9"            # show the mixer
+cc = 105
