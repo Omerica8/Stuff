@@ -78,7 +78,7 @@ def send_cc(fl, percent):
             return
         midi_out = mido.open_output(found[0])
     midi_out.send(mido.Message("control_change", channel=fl.get("channel", 1) - 1,
-                               control=fl.get("fader_cc", 20), value=round(percent * 127 / 100)))
+                               control=fl.get("fader_cc", 7), value=round(percent * 127 / 100)))
 
 
 def do_step(step):

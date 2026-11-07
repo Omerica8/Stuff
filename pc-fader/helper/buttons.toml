@@ -30,14 +30,14 @@ double = {keys = "previous track"}
 # Example macro: open Notepad and type into it
 steps = [ {run = "notepad.exe"}, {wait = 1.0}, {type = "Hello from my fader!"} ]
 
-# FL Studio: while FL is the window in front, the fader sends MIDI (CC 20 on the
+# FL Studio: while FL is the window in front, the fader sends MIDI (CC 7 on the
 # loopMIDI port "PC Fader") and these buttons replace the ones above. A button not
 # listed here keeps its normal action. See "FL Studio" in the README for setup.
 [fl]
 mode = "auto"          # "auto" = only while FL is in front, "always", or "off"
 app = "FL64.exe"       # FL Studio's program name
 midi_port = "PC Fader" # the port name you made in loopMIDI
-fader_cc = 20
+fader_cc = 7            # CC 20-23 are taken by the FL controller's faders
 channel = 1
 
 [fl.button1]
