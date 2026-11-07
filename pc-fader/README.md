@@ -80,6 +80,19 @@ A button can also do something different on a double tap: add `double = {keys = 
 
 If you make a typo, the helper prints what's wrong and keeps the last good settings.
 
+## FL Studio
+
+While FL Studio is the window in front, the fader moves FL's master volume (or anything you link it to) and the buttons switch to the `[fl.buttonN]` actions in `buttons.toml` (play/stop, record, save, mixer by default). Click any other window and it goes back to Windows volume and your normal buttons. `mode = "always"` or `"off"` under `[fl]` changes that.
+
+One-time setup:
+
+1. Install **loopMIDI** (free, from tobias-erichsen.de). Open it, type `PC Fader` in the "New port-name" box and click **+**. Let it start with Windows (its tray icon > Autostart).
+2. Restart the helper.
+3. In FL Studio, open **Options > MIDI settings**. In the Input list, click **PC Fader** and turn on **Enable**.
+4. Right-click FL's master fader (or any knob) > **Link to controller...**, then move your fader. FL learns it; close the window.
+
+If the helper prints `MIDI port "PC Fader" not found`, loopMIDI isn't running or the port name differs from `midi_port` in `buttons.toml`.
+
 ## Things to know
 
 - Shortcuts don't reach programs running as Administrator unless the helper is also run as Administrator.

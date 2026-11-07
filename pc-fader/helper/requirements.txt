@@ -2,3 +2,5 @@ pyserial
 pycaw
 keyboard
 bleak
+mido
+python-rtmidi

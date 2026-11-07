@@ -23,6 +23,64 @@ def set_volume(percent):
     vol.SetMasterVolumeLevelScalar(percent / 100, None)
 
 
+def foreground_exe():
+    """File name of the program in front, e.g. "FL64.exe" ("" if unknown or not on Windows)."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32, kernel32 = ctypes.windll.user32, ctypes.windll.kernel32
+        pid = wintypes.DWORD()
+        user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), ctypes.byref(pid))
+        handle = kernel32.OpenProcess(0x1000, False, pid.value)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return ""
+        try:
+            buf, size = ctypes.create_unicode_buffer(260), wintypes.DWORD(260)
+            kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size))
+            return Path(buf.value).name
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        return ""
+
+
+def fl_active(config, exe):
+    """True when the [fl] settings apply: FL Studio is in front (mode "auto") or mode is "always"."""
+    fl = config.get("fl")
+    if not fl:
+        return False
+    mode = fl.get("mode", "auto")
+    return mode == "always" or (mode == "auto" and exe.lower() == fl.get("app", "FL64.exe").lower())
+
+
+def active(config, fl_on):
+    """The settings to use now: [fl.buttonN] replace [buttonN] while FL is active."""
+    if not fl_on:
+        return config
+    return {**config, **{k: v for k, v in config["fl"].items() if k.startswith("button")}}
+
+
+midi_out, midi_retry = None, 0.0
+
+
+def send_cc(fl, percent):
+    """Fader -> MIDI CC on a loopMIDI port, for FL Studio's "Link to controller"."""
+    global midi_out, midi_retry
+    import mido
+    if midi_out is None:
+        if time.monotonic() < midi_retry:
+            return
+        name = fl.get("midi_port", "PC Fader")
+        found = [n for n in mido.get_output_names() if n.startswith(name)]
+        if not found:
+            print(f'MIDI port "{name}" not found: is loopMIDI running with a port of that name?')
+            midi_retry = time.monotonic() + 5
+            return
+        midi_out = mido.open_output(found[0])
+    midi_out.send(mido.Message("control_change", channel=fl.get("channel", 1) - 1,
+                               control=fl.get("fader_cc", 7), value=round(percent * 127 / 100)))
+
+
 def do_step(step):
     if "keys" in step:
         keyboard.send(step["keys"])
@@ -173,30 +231,34 @@ def main():
     pending = {}
     while True:
         for n in expired(pending, time.monotonic()):
-            press(n, config)
+            press(n, active(config, fl_active(config, foreground_exe())))
         try:  # short timeout while a double tap may follow; the timeout also keeps Ctrl+C working
             msg = parse(lines.get(timeout=0.05 if pending else 0.5))
         except queue.Empty:
             continue
         if not msg:
             continue
-        if msg[0] == "F" and config.get("volume", True) and msg[1] != last:
+        if msg[0] == "F" and msg[1] != last:
             last = msg[1]
-            set_volume(last)
+            if fl_active(config, foreground_exe()):
+                send_cc(config["fl"], last)
+            elif config.get("volume", True):
+                set_volume(last)
         elif msg[0] == "B" and msg[2]:
             if CONFIG.stat().st_mtime != mtime:
                 mtime = CONFIG.stat().st_mtime
                 config = load_config() or config
-            has_double = "double" in config.get(f"button{msg[1]}", {})
+            now = active(config, fl_active(config, foreground_exe()))
+            has_double = "double" in now.get(f"button{msg[1]}", {})
             kind = tap(pending, msg[1], time.monotonic(), has_double)
             if kind:
-                press(msg[1], config, double=kind == "double")
+                press(msg[1], now, double=kind == "double")
 
 
 if __name__ == "__main__":
     if "--test" in sys.argv:
         if getattr(sys, "frozen", False):  # the .exe must have bundled the lazily imported parts
-            import bleak, comtypes, pycaw.pycaw  # noqa: F401
+            import bleak, comtypes, mido.backends.rtmidi, pycaw.pycaw, rtmidi  # noqa: F401
         assert parse("F 73\n") == ("F", 73)
         assert parse("F 150") == ("F", 100)
         assert parse("B 2 1") == ("B", 2, True)
@@ -208,6 +270,12 @@ if __name__ == "__main__":
         assert tap(p, 3, 0.0, True) is None and expired(p, 0.2) == []
         assert tap(p, 3, 0.2, True) == "double" and not p
         assert tap(p, 3, 1.0, True) is None and expired(p, 1.4) == [3] and not p
+        c = {"button1": {"keys": "a"}, "button2": {"keys": "b"}, "fl": {"button1": {"keys": "space"}}}
+        assert fl_active(c, "FL64.exe") and fl_active(c, "fl64.EXE") and not fl_active(c, "chrome.exe")
+        assert not fl_active({}, "FL64.exe") and fl_active({"fl": {"mode": "always"}}, "")
+        assert not fl_active({"fl": {"mode": "off"}}, "FL64.exe")
+        assert active(c, True)["button1"] == {"keys": "space"} and active(c, True)["button2"] == {"keys": "b"}
+        assert active(c, False) is c and foreground_exe() in ("", Path(foreground_exe()).name)
         print("ok")
     else:
         try:
