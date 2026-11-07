@@ -63,8 +63,8 @@ def active(config, fl_on):
 midi_out, midi_retry = None, 0.0
 
 
-def send_cc(fl, percent):
-    """Fader -> MIDI CC on a loopMIDI port, for FL Studio's "Link to controller"."""
+def send_cc(fl, control, value):
+    """MIDI CC (value 0-127) on a loopMIDI port, for FL Studio's "Link to controller"."""
     global midi_out, midi_retry
     import mido
     if midi_out is None:
@@ -78,7 +78,7 @@ def send_cc(fl, percent):
             return
         midi_out = mido.open_output(found[0])
     midi_out.send(mido.Message("control_change", channel=fl.get("channel", 1) - 1,
-                               control=fl.get("fader_cc", 7), value=round(percent * 127 / 100)))
+                               control=control, value=value))
 
 
 def do_step(step):
@@ -228,7 +228,7 @@ def main():
         reader = lambda: read_usb(config, lines)
     threading.Thread(target=reader, daemon=True).start()
     last = None
-    pending = {}
+    pending, held = {}, {}  # held: button -> CC sent on press
     while True:
         for n in expired(pending, time.monotonic()):
             press(n, active(config, fl_active(config, foreground_exe())))
@@ -241,16 +241,23 @@ def main():
         if msg[0] == "F" and msg[1] != last:
             last = msg[1]
             if fl_active(config, foreground_exe()):
-                send_cc(config["fl"], last)
+                send_cc(config["fl"], config["fl"].get("fader_cc", 7), round(last * 127 / 100))
             elif config.get("volume", True):
                 set_volume(last)
-        elif msg[0] == "B" and msg[2]:
+        elif msg[0] == "B" and not msg[2]:
+            if msg[1] in held:  # release of a MIDI button: 0, even if the window changed meanwhile
+                send_cc(config["fl"], held.pop(msg[1]), 0)
+        elif msg[0] == "B":
             if CONFIG.stat().st_mtime != mtime:
                 mtime = CONFIG.stat().st_mtime
                 config = load_config() or config
             now = active(config, fl_active(config, foreground_exe()))
-            has_double = "double" in now.get(f"button{msg[1]}", {})
-            kind = tap(pending, msg[1], time.monotonic(), has_double)
+            action = now.get(f"button{msg[1]}", {})
+            if "cc" in action and "fl" in config:  # MIDI button: 127 while held, 0 on release
+                held[msg[1]] = action["cc"]
+                send_cc(config["fl"], action["cc"], 127)
+                continue
+            kind = tap(pending, msg[1], time.monotonic(), "double" in action)
             if kind:
                 press(msg[1], now, double=kind == "double")
 
@@ -264,7 +271,8 @@ if __name__ == "__main__":
         assert parse("B 2 1") == ("B", 2, True)
         assert parse("B 2 0") == ("B", 2, False)
         assert parse("garbage") is None and parse("") is None and parse("F x") is None
-        assert tomllib.loads(CONFIG.read_text(encoding="utf-8"))["button4"]["steps"]
+        t = tomllib.loads(CONFIG.read_text(encoding="utf-8"))
+        assert t["button4"]["steps"] and [t["fl"][f"button{n}"]["cc"] for n in range(1, 5)] == [102, 103, 104, 105]
         p = {}
         assert tap(p, 1, 0.0, False) == "single" and not p
         assert tap(p, 3, 0.0, True) is None and expired(p, 0.2) == []

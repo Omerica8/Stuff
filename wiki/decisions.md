@@ -30,7 +30,7 @@ Newest last. "Why" is given where it was recorded.
 | 2026-11-05 | PC fader: ESP32 sends fader/button state over USB serial; a Python helper (pycaw + keyboard) sets Windows master volume and runs macros from `buttons.toml` | HID volume keys are only relative steps; a PC-side config lets Omer reassign buttons without reflashing |
 | 2026-11-05 | PC fader goes wireless over Bluetooth LE (Nordic UART service, `bleak` on the PC), USB kept as a fallback | The S3 has BLE only (no Classic SPP). BLE HID volume would be relative only, so the helper still sets absolute volume |
 | 2026-11-06 | PC fader on battery: new 1S LiPo (1200–2000 mAh, protected) + Adafruit PowerBoost 1000C into the devkit 5V pin, EN switch | Omer chose new parts over reusing a mini-drone cell; PowerBoost charges while running and needs no extra protection board |
-| 2026-11-07 | PC fader controls FL Studio while FL is the window in front: fader -> MIDI CC 7 on a loopMIDI port (FL "Link to controller"), buttons -> `[fl.buttonN]` shortcuts | The board stays on serial/BLE (no USB MIDI over the CH343 port or BLE on Windows); the PC helper routes by foreground window |
+| 2026-11-07 | PC fader controls FL Studio while FL is the window in front: fader -> MIDI CC 7 on a loopMIDI port (FL "Link to controller"), buttons -> CC 102-105 (127 held / 0 released, or `keys` shortcuts) via `[fl.buttonN]` | The board stays on serial/BLE (no USB MIDI over the CH343 port or BLE on Windows); the PC helper routes by foreground window |
 
 ## Still open
 
