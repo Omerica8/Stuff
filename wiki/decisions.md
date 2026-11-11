@@ -32,6 +32,7 @@ Newest last. "Why" is given where it was recorded.
 | 2026-11-06 | PC fader on battery: new 1S LiPo (1200–2000 mAh, protected) + Adafruit PowerBoost 1000C into the devkit 5V pin, EN switch | Omer chose new parts over reusing a mini-drone cell; PowerBoost charges while running and needs no extra protection board |
 | 2026-11-07 | PC fader controls FL Studio while FL is the window in front: fader -> MIDI CC 7 on a loopMIDI port (FL "Link to controller"), buttons -> CC 102-105 (127 held / 0 released, or `keys` shortcuts) via `[fl.buttonN]` | The board stays on serial/BLE (no USB MIDI over the CH343 port or BLE on Windows); the PC helper routes by foreground window |
 | 2026-11-11 | New project: ESP32 synth (synth/), ESP32-S3 + PCM5102A I2S DAC, 8-voice poly with a mono mode, USB + DIN MIDI in | Omer chose poly + mono over mono-only or poly-only; same code cost and the S3 has the headroom. Reuses the controller's pots, encoders and TFT |
+| 2026-11-11 | Synth battery option: salvaged 350 mAh toy-drone 1S cells via TP4056 with DW01 protection (charge set to ~250 mA with a 4.7 kΩ resistor) + MT3608 boost to 5 V | Cells have no protection of their own; the PowerBoost 1000C from the PC fader charges at 1 A, too much for 350 mAh |
 
 ## Still open
 
