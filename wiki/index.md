@@ -5,6 +5,7 @@ Omer's audio projects, all on the `mixer` branch of Omerica8/Stuff. The first tw
 1. **FL Studio MIDI controller**: ESP32-S3 with 4 faders, 4 encoders, a 2.8" TFT and buttons, sending USB MIDI to FL Studio.
 2. **Full-size analog mixer** (Yamaha MG10XU style): 2 mic strips, 2 stereo strips, master, power, digital (USB audio + MIDI), reverb and MIDI hub (5 DIN IN, 3 OUT, USB host) boards. The controller becomes the mixer's MIDI section.
 3. **PC fader** ([pc-fader/](../pc-fader/README.md)): standalone ESP32-S3 with one fader (GPIO1) as absolute Windows master volume and 4 buttons (GPIO4, 5, 6, 17) whose macros live in a PC-side `buttons.toml`, sent over Bluetooth LE (Nordic UART) or USB serial to a Python helper.
+4. **ESP32 synth** ([synth/](../synth/README.md)): ESP32-S3 digital synth, 8-voice poly + mono mode, PCM5102A I2S DAC out (provisional pins BCK 16, LRCK 17, DATA 18), played over USB MIDI ("Omer Synth") and later DIN MIDI, with faders/encoders/TFT from the controller parts.
 
 | Page | What's in it |
 |---|---|

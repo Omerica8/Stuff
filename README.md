@@ -9,6 +9,7 @@ Home for all of Omer's audio hardware and software projects. The default branch 
 | FL Studio MIDI controller (ESP32-S3, faders, encoders, TFT) | [controller/](controller/), [firmware/](firmware/), [shopping/](shopping/) | PCB designed, firmware in steps |
 | Full-size analog mixer (Yamaha MG10XU style) | [mixer/](mixer/) ([README](mixer/README.md)) | Boards and case in progress |
 | PC fader: Windows master volume + 4 macro buttons (ESP32-S3 on perfboard) | [pc-fader/](pc-fader/) ([README](pc-fader/README.md)) | Code written, not tested on hardware |
+| ESP32 synth: 8-voice poly + mono mode, PCM5102A DAC, USB/DIN MIDI in | [synth/](synth/) ([README](synth/README.md)) | Concept agreed, step 1 firmware written |
 
 ## Shared
 

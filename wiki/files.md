@@ -63,3 +63,6 @@
 | [pc-fader/helper/pc_fader.py](../pc-fader/helper/pc_fader.py) | PC fader helper (Windows): fader -> master volume, buttons -> actions from buttons.toml. |
 | [pc-fader/pc_fader/pc_fader.ino](../pc-fader/pc_fader/pc_fader.ino) | PC fader: one fader (GPIO1) + four buttons (GPIO4, 5, 6, 17) talk to the PC helper over US |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |
+| [synth/README.md](../synth/README.md) | ESP32 synth |
+| [synth/step1_dac_tone/README.md](../synth/step1_dac_tone/README.md) | Step 1: make sound |
+| [synth/step1_dac_tone/step1_dac_tone.ino](../synth/step1_dac_tone/step1_dac_tone.ino) | Step 1: 8-voice saw synth. USB MIDI notes in, PCM5102A I2S DAC out. |
