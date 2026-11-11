@@ -6,6 +6,8 @@ The ESP32-S3 plays up to 8 saw-wave notes from USB MIDI through a PCM5102A DAC. 
 
 Pins are provisional (see [../README.md](../README.md)).
 
+![Step 1 wiring](wiring.png)
+
 | PCM5102A board | ESP32-S3 |
 |---|---|
 | VIN | 5V (or 3V3) |
