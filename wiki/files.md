@@ -63,6 +63,7 @@
 | [pc-fader/helper/pc_fader.py](../pc-fader/helper/pc_fader.py) | PC fader helper (Windows): fader -> master volume, buttons -> actions from buttons.toml. |
 | [pc-fader/pc_fader/pc_fader.ino](../pc-fader/pc_fader/pc_fader.ino) | PC fader: one fader (GPIO1) + four buttons (GPIO4, 5, 6, 17) talk to the PC helper over US |
 | [shopping/aliexpress_pcb_shopping_list.md](../shopping/aliexpress_pcb_shopping_list.md) | AliExpress shopping list: controller PCB |
+| [synth/MOTORS.md](../synth/MOTORS.md) | Drone motors in the synth |
 | [synth/POWER.md](../synth/POWER.md) | Battery power for the synth |
 | [synth/README.md](../synth/README.md) | ESP32 synth |
 | [synth/step1_dac_tone/README.md](../synth/step1_dac_tone/README.md) | Step 1: make sound |

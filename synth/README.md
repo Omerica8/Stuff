@@ -46,7 +46,12 @@ Not locked until the exact board and TFT labels are confirmed.
 
 Optional, for playing away from the PC: Omer's salvaged 350 mAh toy-drone LiPo cells through a TP4056 (with protection, charge resistor changed to 4.7 kΩ) and an MT3608 boost to 5 V, about 1-1.5 h per cell. See [POWER.md](POWER.md).
 
+## Drone motors (optional)
+
+Omer's 4 salvaged coreless drone motors as mechanical "robot drums" on MIDI notes 36-39 (ch 10), each through an AO3400 MOSFET + 1N5819 diode, provisional GPIO38-41. See [MOTORS.md](MOTORS.md).
+
 ## To buy
 
 - PCM5102A I2S DAC board (Amazon/AliExpress, "PCM5102A I2S DAC"). Everything else for steps 1-6 is already on hand.
+- For the drone motors: 4x AO3400 MOSFET, 4x 1N5819 diode, 100 Ω and 100 kΩ resistors, a 470 µF capacitor, about $2-3.
 - For battery use: TP4056 board with protection (DW01A) + MT3608 boost + slide switch, about $3-5.
